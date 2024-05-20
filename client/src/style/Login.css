@@ -1,0 +1,71 @@
+/* Login.css */
+.login-container {
+    max-width: 300px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .login-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .login-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .remember-me {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .remember-me input {
+    margin-right: 5px;
+  }
+  
+  .login-form button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 0;
+    background-color: #0e9d12d0;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .forgot-password {
+    display: block;
+    text-align: center;
+    color: #0e9d12d0;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+  
+  .separator {
+    text-align: center;
+    margin-bottom: 5px;
+    background-color: #fff;
+    padding: 0 10px;
+  }
+  
+  
+  .signup-link {
+    text-align: center;
+    margin-top: 5px; 
+  }
+  
+  .signup-link a {
+    color: #0e9d12d0;
+    text-decoration: none;
+  }
+  
+  /* Include the Font Awesome library in your index.html for the social media icons to display */
+  

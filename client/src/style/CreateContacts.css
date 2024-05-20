@@ -1,0 +1,115 @@
+.create-contacts{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.cc-cont {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* .cc-cont-items {
+    margin-bottom: 40px; 
+    margin-left: 10px;
+    font-size: 18px; 
+    cursor: pointer;
+  } */
+
+.cc-cont-items-1,
+.cc-cont-items-2 {
+  cursor: pointer;
+  margin-bottom: 40px; /* Vertical space between items */
+}
+
+/* Style for "Back to Contacts" link */
+.cc-cont-items-1 {
+    color: black; /* Blue color for the text */
+    text-decoration: none; /* Underline effect */
+    font-weight: bold;
+    
+  }
+
+.cc-cont-items-1:hover {
+    color: #1f5c8b; 
+  }
+
+  .cc-cont-items-2 {
+    background-color: black; 
+    color: #fff; 
+    padding: 10px 20px; 
+    border-radius: 4px; 
+    text-align: center; 
+    font-weight: 600;
+  }
+  
+  /* Hover effect for "Create new list" button */
+  .cc-cont-items-2:hover {
+    background-color: #1f5c8b; /* Darker blue color on hover */
+  }
+  
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's above other elements */
+  }
+
+  /* Create List Box Styles */
+.create-list-box {
+    background: #fff; /* White background for the box */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 400px; /* Adjust based on your design */
+    width: 100%;
+    text-align: center;
+  }
+
+  .create-list-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  input {
+    width: 95%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .create-list-buttons {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .create-list-cancel,
+  .create-list-continue {
+    cursor: pointer;
+    padding: 7px 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .create-list-cancel {
+    background-color: #e74c3c; /* Red color for cancel button */
+    color: #fff;
+  }
+
+  .create-list-continue {
+    background-color: #3498db; /* Blue color for continue button */
+    color: #fff;
+  }

@@ -1,0 +1,40 @@
+.csv-options-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  
+}
+
+.csv-options {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 60%;
+  margin-bottom: 20px;
+  
+}
+
+.csv-select-button-container {
+  display: flex;
+  flex-direction: column; 
+  justify-content: center;
+  align-items: center; 
+  margin-top: 100px;
+}
+
+.custom-file-upload {
+  background-color: black;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 250px;
+  margin-top: 20px;
+  display: inline-block; /* Adjust display property */
+}
+
+
+.custom-file-upload:hover {
+  background-color: #5cb85c;
+}

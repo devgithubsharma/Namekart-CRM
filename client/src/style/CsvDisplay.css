@@ -1,0 +1,109 @@
+.csv-display-container {
+    margin-bottom: 50px;
+    text-align: center;
+  }
+
+  .csv-table-container {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  h2 {
+    margin-bottom: 10px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    padding: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+  }
+  
+  td {
+    text-align: left;
+  }
+
+  button {
+    background-color: #69e56d;
+    margin-top: 30px;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+
+  .options-section {
+    margin-top: 150px;
+  }
+  
+  .option-1 .option-2 {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px; 
+  }
+  .option-2{
+    position: relative;
+  }
+  
+  /* .option-1 label {
+    display: block;
+    margin-bottom: 5px;
+    margin-right:87%;
+  } */
+/* 
+  .option-2 label {
+    display: block;
+    margin-bottom: 5px;
+    margin-right:90%;
+  } */
+
+  .option-1 .MuiTextField-root {
+    margin-right:560px; /* Adjust as needed for spacing */
+  }
+
+.option-2 .MuiTextField-root {
+  margin-right:560px; /* Adjust as needed for spacing */
+}
+
+
+
+  .option-1 input{
+    width: 50%;
+    margin-right:45% ;
+  }
+
+  /* .option-2 input{
+    width: 50%;
+    margin-right:45% ;
+  } */
+
+  .option-2 Button {
+    /* Styles for the "Add" button */
+    position: absolute;
+    top: 0;
+    right: 35%;
+    margin-top: 7px;
+    padding: 8px 10px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+  }
+  
+  /* Optional: Hover styles for the button */
+  .option-2 button:hover {
+    background-color: #0056b3;
+  }

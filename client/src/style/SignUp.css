@@ -1,0 +1,53 @@
+/* Signup.css */
+.signup-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .signup-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .signup-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .signup-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0e9d12d0;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .social-login {
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  .social-login span {
+    background-color: #fff;
+    padding: 0 10px;
+  }
+  
+  .login-link {
+    text-align: center;
+  }
+  
+  .login-link a {
+    color: #0e9d12d0;
+    text-decoration: none;
+  }
+  
+  /* You might need to include the Font Awesome library in your index.html for the social media icons to display */
+  
