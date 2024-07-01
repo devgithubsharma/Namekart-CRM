@@ -43,7 +43,7 @@ const ReceivingEmail = () => {
     const fetchReceivingEmails = async () => {
       try {
         // Replace 'https://example.com/api/getReceivingEmails' with your actual API endpoint
-        const response = await fetch('http://localhost:3001/api/receivingEmails');
+        const response = await fetch('https://crmapi.namekart.com/api/receivingEmails');
         const data = await response.json();
 
         // Assuming the data structure is an array of emails

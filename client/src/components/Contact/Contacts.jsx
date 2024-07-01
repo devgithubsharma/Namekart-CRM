@@ -1,14 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useContext } from 'react';
 import '../../style/Contacts.css';
 import { Link, Outlet } from 'react-router-dom'; 
 import Tab from '@mui/material/Tab';
 import TabContext from '@material-ui/lab/TabContext';
 import TabList from '@material-ui/lab/TabList';
 import TabPanel from '@material-ui/lab/TabPanel';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import IconButton from '@mui/material/IconButton';
 import { DataGrid } from '@mui/x-data-grid';
 import AcUnitOutlinedIcon from '@mui/icons-material/AcUnitOutlined';
 import { makeStyles } from '@material-ui/core/styles';
 import axios from 'axios';
+import { GlobalContext } from '../ContextApi/GlobalContext';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {fetchContactList} from '../../api'
+import {fetchTag} from '../../api'
+import {fetchContactForTag} from '../../api'
 
 const useStyles = makeStyles({
   tab: {
@@ -33,20 +42,41 @@ const useStyles = makeStyles({
   }
 });
 
+const localTheme = createTheme({
+  components: {
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          width: 250,
+          maxHeight: 300,
+          overflowX: 'auto'
+        }
+      }
+    }
+  }
+});
+
 function Contacts() {  
   const [value, setValue] = useState('1');
   const [newEmails, setNewEmails] = useState([]);
+  const { userId } = useContext(GlobalContext);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [tags, setTags] = useState([]);
+  const [selectedTag, setSelectedTag] = useState('');
+  const [selectedTitleId, setSelectedTitleId] = useState('');
   const classes = useStyles();
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
+  
   useEffect( () => {
     const fetchContactsList = async () =>{
         try{
-            const response = await axios.get('http://localhost:3001/api/getContactList');
-            console.log(response.data.result)
+            // const response = await axios.get(`https://crmapi.namekart.com/api/getContactList/${userId}`);
+            // console.log(response.data.result)
+            const response = await fetchContactList(userId)
             setNewEmails(response.data.result)
         }catch(err){
           console.log('Error in fetching Contacts', err)
@@ -54,6 +84,55 @@ function Contacts() {
     }  
     fetchContactsList();
 }, []);
+
+          useEffect(() => {
+            const fetchSelectedContacts = async () => {
+                try {
+                    const response = await fetchContactForTag(selectedTitleId);
+                    console.log("response",response)
+                    setNewEmails(response.data.results);
+                } catch (err) {
+                    console.log('Error in fetching Contacts', err);
+                }
+            };
+            fetchSelectedContacts();
+        }, [selectedTitleId]);
+
+        useEffect(()=>{
+          console.log("NewEmails",newEmails)
+        },[newEmails])
+
+    useEffect(() => {
+        const fetchAllTags = async () => {
+              try {
+                  const tagsResponse = await fetchTag(userId);
+                  console.log("tagsResponse",tagsResponse)
+                  const allTags = tagsResponse.data.result.map(item => ({
+                    tag: item.tags,
+                    title_id: item.title_id
+                }));
+                  setTags(allTags);
+              } catch (error) {
+                  console.error('Error fetching tags:', error);
+              }
+          };
+          fetchAllTags();
+      }, []);
+
+
+      useEffect(() => {
+        console.log("tags",tags)
+      }, [tags]);
+
+      const handleClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = (tag, titleId) => {
+        setSelectedTag(tag);
+        setSelectedTitleId(titleId);
+        setAnchorEl(null);
+    };
 
 
 const headerStyle = {
@@ -64,6 +143,8 @@ const headerStyle = {
       
   }
 };
+
+
 
 const columns = [
   { field: 'Contact', headerName: 'Contact', width: 700 },
@@ -117,9 +198,39 @@ const rows = [...newEmails].reverse().map((emailObj,index) => ({
             <div className='addcont-container'>
                 <div className='addcont'>
                     <div className='addcont-left'>  
-                        <Link to='/createContacts' className='addcont-items'>Add Contacts</Link>
+                        <Link to='/home/createContacts' className='addcont-items'>Add Contacts</Link>
                         <div className='addcont-items'>View metrics</div>
-                        <div className='addcont-items'>Filters</div>
+                        <div className='addcont-items'>
+                          Filters
+                          <IconButton
+                                aria-controls="filter-menu"
+                                aria-haspopup="true"
+                                onClick={handleClick}
+                            >
+                                <ArrowDropDownIcon />
+                            </IconButton>
+
+                          <ThemeProvider theme={localTheme}>
+                            <Menu
+                                id="filter-menu"
+                                anchorEl={anchorEl}
+                                open={Boolean(anchorEl)}
+                                onClose={() => handleClose('','')}
+                              //   sx={{
+                              //     width: 500, // Adjust width as needed
+                              //     maxHeight: 300, // Adjust maximum height as needed
+                                  
+                              //      // Adds scroll if content exceeds max height
+                              // }}
+                            >
+                                {tags.map((tag) => (
+                                    <MenuItem key={tag.tag} onClick={() => handleClose(tag.tag, tag.title_id)}>
+                                        {tag.tag}
+                                    </MenuItem>
+                                ))}
+                            </Menu>
+                          </ThemeProvider>
+                        </div>
                     </div>                        
                     
                     <div className='addcont-right'>

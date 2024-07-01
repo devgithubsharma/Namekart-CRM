@@ -6,18 +6,24 @@ export const GlobalProvider = ({ children }) => {
     localStorage.getItem('isAuthenticated') === 'true'
   );
 
-  const loginAuth = () => {
+  const [userId, setUserId] = useState(localStorage.getItem('userId'));
+
+  const loginAuth = (id) => {
     localStorage.setItem('isAuthenticated', 'true');
+    localStorage.setItem('userId', id);
     setIsAuthenticated(true);
+    setUserId(id);
   };
 
   const logout = () => {
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userId'); 
     setIsAuthenticated(false);
+    setUserId(null);
   };
 
   return (
-    <GlobalContext.Provider value={{ isAuthenticated, loginAuth, logout }}>
+    <GlobalContext.Provider value={{ isAuthenticated, userId, loginAuth, logout }}>
       {children}
     </GlobalContext.Provider>
   );

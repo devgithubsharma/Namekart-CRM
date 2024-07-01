@@ -17,6 +17,7 @@
     margin-top: 20px; /* Adjust top margin as needed */
     padding: 10px;
     background: #FFF; /* Adjust the background color as needed */
+
   }
 
   .left-buttons > .button {
@@ -39,10 +40,7 @@
     color: black;
     border: 1px solid black;
   }
-  /* .campaign-info {
-    display: flex;
-    align-items: center;
-  } */
+  
   
   .black {
     background-color: black;
@@ -73,6 +71,7 @@
     z-index: 1000;
     width: 50%; /* Adjust width as necessary */
     max-width: 600px; /* Maximum width */
+    max-height: 220px;
   }
   
   .Overlay {

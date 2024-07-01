@@ -2,12 +2,12 @@ const dbConnection = require('../dbConnection');
 
 const updateUnsubscribePage = async (req,res) =>{
     const campId = req.params.campId;
-    const messageId = req.params.mailId;
+    const messageId = req.params.mailId.replace(/^<|>$/g, '');
 
     console.log(campId,messageId)
-
+    let connection
     try{
-        const connection = await dbConnection.getConnection();
+         connection = await dbConnection.getConnection();
         const insertEmailQuery = 'UPDATE emailsdata SET contactsUnsubscribed = ? WHERE campId = ? AND messageId = ?'
 
         await connection.query(insertEmailQuery,['yes',campId,messageId], (err,result)=>{
@@ -22,6 +22,10 @@ const updateUnsubscribePage = async (req,res) =>{
     }catch(err){
         console.log(err)
         res.status(500).send("Error during the Update Unsubscribe page process.")
+    }finally{
+        if(connection){
+            connection.release();
+        }
     }
 }
 

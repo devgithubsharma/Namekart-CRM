@@ -2,13 +2,14 @@ const dbConnection = require('../dbConnection');
 
 const getFilteredCampaignData = async (req,res) =>{
     const selectedCampaignType = req.params.selectedCampaignType;
+    const userId = req.params.userId
     let connection;
     try{
         console.log('Connection 1')
         connection = await dbConnection.getConnection();
         console.log('Connection 2')
-        const userQuery = 'Select camp_id, camp_name, title_id, camp_type from camptable where camp_type=?';
-        await connection.query(userQuery,[selectedCampaignType], (err,result) =>{
+        const userQuery = 'Select camp_id, camp_name, title_id, camp_type from camptable where camp_type=? and userId=?';
+        await connection.query(userQuery,[selectedCampaignType,userId], (err,result) =>{
             if(err){
                 console.log(err)
                 res.status(500).json({error: 'Internal Server Error'})

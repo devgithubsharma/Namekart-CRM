@@ -1,10 +1,11 @@
 /* Signup.css */
 .signup-container {
-    max-width: 400px;
+    max-width: 350px;
+    height: 400px;
     margin: 50px auto;
     padding: 20px;
     background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 10px 10px 20px 10px rgba(0, 0, 0, 0.1);
   }
   
   .signup-form h2 {
@@ -13,21 +14,23 @@
   }
   
   .signup-form input {
-    width: 100%;
+    width: 95%;
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 30px;
   }
   
   .signup-form button {
-    width: 100%;
+    width: 50%;
     padding: 10px;
-    background-color: #0e9d12d0;
+  
+    background-color: rgb(41, 36, 36);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 30px;
     margin-bottom: 10px;
+    margin-left: 90px;
   }
   
   .social-login {
@@ -35,19 +38,27 @@
     margin: 20px 0;
   }
   
-  .social-login span {
-    background-color: #fff;
-    padding: 0 10px;
+  .social-login {
+    text-align: center;
+    margin-bottom: 5px; /* Reduced margin for closer proximity */
   }
   
   .login-link {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 50px;
   }
   
-  .login-link a {
-    color: #0e9d12d0;
+  .login-link button {
+    width: 22px;
+    background: none;
+    color: rgba(4, 71, 4, 0.705);
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
+    margin-bottom: 28px;
     text-decoration: none;
+    font-weight: 800;
+    padding: 0;
   }
-  
-  /* You might need to include the Font Awesome library in your index.html for the social media icons to display */
-  

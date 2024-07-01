@@ -3,6 +3,7 @@ const dbConnection = require('../dbConnection');
 const getCampIdUsingEmailKeyId = async (req,res) =>{
     const emailId = req.params.email_id;
     let connection;
+
     try{
         connection = await dbConnection.getConnection();
         const getCampIdQuery = 'SELECT threadId FROM emailsdata WHERE email_id = ?';
@@ -14,6 +15,7 @@ const getCampIdUsingEmailKeyId = async (req,res) =>{
             res.status(200).json(results);
         }
     });
+    
     }catch(err){
         console.log("Internal server error",err)
     }finally{

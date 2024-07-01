@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { Typography,Tab,Tabs, TextField, Box, Chip, Stack,Button, InputAdornment } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { makeStyles } from '@mui/styles';
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import axios from 'axios';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import { useNavigate } from 'react-router';
+import { GlobalContext } from './ContextApi/GlobalContext';
+import {fetchCampId} from '../api'
+import {fetchIndexData} from '../api'
 // import ChatBox from './ChatBox';
 
 const useStyles = makeStyles({
@@ -29,6 +32,7 @@ function EmailChatting() {
     const [searchText, setSearchText] = useState('');
     const [filterText, setFilterText] = useState('');
     const [selectedDate, setSelectedDate] = useState(null);
+    const { userId } = useContext(GlobalContext);
     // const [selectedEmail, setSelectedEmail] = useState(null);
     // const [chatHistory, setChatHistory] = useState([]);
     // const [replyText, setReplyText] = useState('');
@@ -56,22 +60,27 @@ function EmailChatting() {
     const handleRowClick = async (params) => {
       const email = params.row;
       const email_id = email.emailId
-      const response = await axios.get(`http://localhost:3001/api/chatsCampId/${email_id}`); 
+      // const response = await axios.get(`https://crmapi.namekart.com/api/chatsCampId/${email_id}`); 
+      const response = await fetchCampId(email_id)
       console.log("response",response)
       console.log(response.data[0].threadId)
       const threadId = response.data[0].threadId
-      navigate(`/chats/${threadId}`); 
+      navigate(`/home/chats/${threadId}`); 
   };
+
+
 
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://localhost:3001/api/indexData`, {
-                    params :{
-                        type: typeMapping[value] 
-                    }                 
-                })
+                // const response = await axios.get(`https://crmapi.namekart.com/api/indexData/${userId}`, {
+                //     params :{
+                //         type: typeMapping[value] 
+                //     }                 
+                // });
+                const response = await fetchIndexData(userId,typeMapping[value])
+
                 console.log(response.data.result)
                 const mappedData = response.data.result.map((item, index) => ({
                     id: index, // Ensure each item has a unique ID
@@ -82,7 +91,6 @@ function EmailChatting() {
                     time: item.receivedTime || 'Unknown'
                 }));
                 setIndexData(mappedData);
-
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -91,18 +99,18 @@ function EmailChatting() {
     }, [value]);
 
     const filteredEmails = indexData.filter(email => {
-        const emailDate = new Date(email.time);
-        const dateMatches = selectedDate ? emailDate >= new Date(selectedDate) : true;
-        const lowerCaseFilterText = filterText.toLowerCase();
-        const textMatches = filterText ? (
-            email.sender.toLowerCase().includes(lowerCaseFilterText) ||
-            email.subject.toLowerCase().includes(lowerCaseFilterText) ||
-            email.body.toLowerCase().includes(lowerCaseFilterText)
-        ) : true;
-    
-        return dateMatches && textMatches;
-    });
-
+      const emailDate = new Date(email.time).setHours(0, 0, 0, 0);
+      const selectedDateOnly = selectedDate ? new Date(selectedDate).setHours(0, 0, 0, 0) : null;
+      const dateMatches = selectedDateOnly ? emailDate === selectedDateOnly : true;
+      const lowerCaseFilterText = filterText.toLowerCase();
+      const textMatches = filterText ? (
+          email.sender.toLowerCase().includes(lowerCaseFilterText) ||
+          email.subject.toLowerCase().includes(lowerCaseFilterText) ||
+          email.body.toLowerCase().includes(lowerCaseFilterText)
+      ) : true;
+  
+      return dateMatches && textMatches;
+  });
     // const filteredEmails = filterText ? indexData.filter(email => {
     //     return (
     //         email.sender.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -118,6 +126,7 @@ function EmailChatting() {
         { field: 'body', headerName: 'Body text', width: 300 },
         { field: 'time', headerName: 'Time', width: 100 }
     ];
+
 
 
     return (
@@ -213,19 +222,15 @@ function EmailChatting() {
           </Tabs>
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateTimePicker
-                label="Filter by Date and Time"
-                value={selectedDate}
-                onChange={(newValue) => {
-                    setSelectedDate(newValue);
-                    // Optionally trigger a re-fetch or filter of emails based on the selected date
-                }}
-                sx={{ width: '220px', marginRight: '90px' }} 
-                
-                renderInput={(params) => <TextField {...params} 
-                
-                />}
-            />
+            <DatePicker
+                    label="Filter by Date"
+                    value={selectedDate}
+                    onChange={(newValue) => {
+                        setSelectedDate(newValue);
+                    }}
+                    sx={{ width: '200px', marginRight: '90px' }} 
+                    renderInput={(params) => <TextField {...params} />}
+                />
             </LocalizationProvider>
 
         </Box>
@@ -242,6 +247,7 @@ function EmailChatting() {
                     className: classes.clickableRow,
                 },
             }}
+            
               sx={{
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: 'rgba(235, 235, 235, 0.7)', 

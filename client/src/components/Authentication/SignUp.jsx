@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import '../../style/SignUp.css'
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { signUp } from '../../api';
 
 function Signup() {
   const navigate = useNavigate();
@@ -11,36 +12,44 @@ function Signup() {
 
   const handleSignup = async (event) => {
     event.preventDefault();
-    // Handle the signup logic here
+    
     try{
-      const response = await axios.post('http://localhost:3001/api/register', { 
-        username, 
-        email, 
-        password 
-      });
-
+      // const response = await axios.post('http://localhost:3001/api/register', { 
+      //   username, 
+      //   email, 
+      //   password 
+      // });
+      const response = await signUp(username,email,password);
       if (response.status === 200 || response.status === 201) {
         console.log('Signup successful');
         navigate('/login');
       } else {
         console.error('Signup failed');
-        // Handle errors (e.g., display a message to the user)
+
       }
     }catch(error){
       console.error('There was a problem with the signup request:', error);
-      // Handle errors (e.g., display a message to the user)
+
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.log(error.response.data);
-        console.log(error.response.status);
-        console.log(error.response.headers);
+       
+        if (error.response.status === 409 || error.response.data.message === 'User already exists') {
+          alert('User already registered. Please login.');
+        } else {
+
+          console.log(error.response.data);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+
+        }
+
       } else if (error.request) {
-        // The request was made but no response was received
+       
         console.log(error.request);
+
       } else {
-        // Something happened in setting up the request that triggered an Error
+
         console.log('Error', error.message);
+        
       }
     }
   };
@@ -75,7 +84,7 @@ function Signup() {
           <span>OR</span>
         </div>
         <div className="login-link">
-          Already a user? <a href="/login">LOGIN</a>
+          Already a user? <button onClick={() => navigate('/login')}>LOGIN</button>
         </div>
       </form>
     </div>

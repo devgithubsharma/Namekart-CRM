@@ -14,16 +14,16 @@ const trackingEmails = async (req,res) =>{
                 console.log('Error in tracking email query')
             }else{
                 console.log(result)
-                connection.release();
                 res.json({result})
             }
         })
     }catch(err){
         console.log('Error in tracking emails',err)
+        res.status(500).send({ error: 'Internal Server Error' });
+    }finally{
         if(connection){
             connection.release();
         }
-        res.status(500).send({ error: 'Internal Server Error' });
     }
 
 }

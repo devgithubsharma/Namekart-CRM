@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    network_mode: host
+    # ports:
+    #   - "3001:3001"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+   
+
+ 

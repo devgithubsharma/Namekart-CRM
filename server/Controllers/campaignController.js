@@ -4,14 +4,16 @@ const campaignsData = async (req,res) =>{
     const campName = req.body.campaignName;
     // const tagName = req.body.tagName;
     const tagId = req.body.titleId;
+    const userId = req.body.userId
     console.log(campName,)
     let connection;
 
+    
     try{
 
         connection = await dbConnection.getConnection();
-        const userQuery = 'INSERT into camptable (camp_name, title_id, camp_type) VALUES (?,?,?)';
-        await connection.query(userQuery,[campName,tagId, 'manual'],(error,result) =>{
+        const userQuery = 'INSERT into camptable (camp_name, title_id, camp_type,userId) VALUES (?,?,?,?)';
+        await connection.query(userQuery,[campName,tagId, 'manual',userId],(error,result) =>{
             if(error){
                 console.log('Error in campaignData query', error)
                 res.status(500).json({ error: 'Internal Server Error' });

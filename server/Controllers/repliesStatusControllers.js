@@ -22,7 +22,7 @@ function getSenderEmails(connection){
 
 function messageIdExists(connection,messageId){
     return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM emailsdata WHERE messageId = ?';// Assuming you want to increment the count
+        const query = 'SELECT * FROM emailsdata WHERE messageId = ?';
         connection.query(query, [messageId],(error, results) => {
             if (error) {
                 console.error('Error in query of checking messageId', error);
@@ -42,7 +42,12 @@ function messageIdExists(connection,messageId){
 function updateContactsRepliedInDatabase(messageId,connection) {
     console.log(messageId)
     return new Promise((resolve, reject) => {
-        const query = 'UPDATE emailsdata SET contactsReplied = ? WHERE messageId = ? '; // Assuming you want to increment the count
+        if (!Array.isArray(messageId)) {
+            messageId = [messageId];
+        }
+
+        const idsForSql = messageId.map(id => `'${id}'`).join(', ');
+        const query = `UPDATE emailsdata SET contactsReplied = 1 WHERE messageId IN (${idsForSql})`;
         connection.query(query, [1,messageId], (error, results) => {
             if (error) {
                 console.error('Error in updating contactsReplied count', error);
@@ -135,7 +140,6 @@ async function processUpdateRepliesStatus(connection) {
         console.log('datas',datas)
     
         for (let sender of datas) {
-            
             const tokens = await getTokensForSender(sender,connection);
             let accessToken = await getGmailToken(tokens.refreshToken);
             let base64Encoded =  Buffer.from([`user=${sender}`, `auth=Bearer ${accessToken}`, '', ''].join('\x01'), 'utf-8').toString('base64');
@@ -176,8 +180,8 @@ async function processUpdateRepliesStatus(connection) {
     
                         console.log('Before receivedEmails')
                         let messageId = await getReceivedEmails(imap, sender,connection);
-                        console.log(messageId)
-                       
+                        console.log("messageId", messageId)
+
                         try {
                             if(messageId){
                                 await updateContactsRepliedInDatabase(messageId,connection);
@@ -186,7 +190,7 @@ async function processUpdateRepliesStatus(connection) {
                             
                         } catch (error) {
                             console.error(`Error updating database: ${error}`);
-                            return res.status(500).send("Error updating contacts replied in database.");
+                            // return res.status(500).send("Error updating contacts replied in database.");
                         }
                         imap.end();
                         resolve();
@@ -200,13 +204,14 @@ async function processUpdateRepliesStatus(connection) {
     }
 }
 
+
 async function getReceivedEmails(imap, senderEmail, connection) {
     let lastFetchTime = await getLastFetchTime(connection);
     lastFetchTime = lastFetchTime.map(data => data.lastFetchTime);
     console.log('lastFetchTime', lastFetchTime);
 
     return new Promise((resolve, reject) => {
-        imap.search(["ALL", ["ON", 'April 11, 2024'], ["TO", senderEmail]], function(err, results) {
+        imap.search(["ALL", ["ON", 'May 23, 2024'], ["TO", senderEmail]], function(err, results) {
             if (err) {
                 reject(err);
                 return;
@@ -214,63 +219,72 @@ async function getReceivedEmails(imap, senderEmail, connection) {
 
             if (!results || !results.length) {
                 console.log(`No unread mails from ${senderEmail}`);
-                resolve(0);
+                resolve([]);
                 return;
             }
 
-            let foundMessageId = null;
             const fetchPromises = [];
-
+            console.log('After fetchPromises array');
             var f = imap.fetch(results, {
-                request: {
-                  headers: true,
-                  body: true
-                }
-              });
+                bodies: ['', 'HEADER'],  // '' denotes the entire body, 'HEADER' denotes the entire header
+                struct: true
+            });
 
             f.on("message", function(msg, seqno) {
+                var mailparser = new MailParser();
                 const fetchPromise = new Promise((resolveMail, rejectMail) => {
-                    var mailparser = new MailParser();
-                    mailparser.on("error", error => {
-                        console.error('MailParser error:', error);
-                        rejectMail(error);
-                    });
+                    let foundMessageId = null;
 
                     msg.on("body", function(stream, info) {
-                        console.log(`Piping data to MailParser for seqno: ${seqno}, info: ${info.which}`);
+                        console.log(`Stream received for seqno: ${seqno}, part: ${info.which}`);
                         stream.pipe(mailparser);
+
+                        stream.once('end', () => {
+                            console.log('Stream ended for', seqno);
+                        });
+
+                        stream.once('error', (error) => {
+                            console.error('Stream error:', error);
+                            rejectMail(error);
+                        });
                     });
 
                     mailparser.on("headers", async function(headers) {
-                        console.log('Mail header', headers);
+                        console.log('All headers:', headers);
                         let messageId = headers.get("in-reply-to");
                         let checkSubject = headers.get("subject");
-                        console.log('messageId',messageId)
-                        console.log('checkSubject',checkSubject)
+                        console.log('Extracted messageId:', messageId);
+                        console.log('Extracted subject:', checkSubject);
 
                         if (messageId) {
                             messageId = messageId.replace(/[<>]/g, '');
-                            console.log('messageId', messageId);
+                            console.log('Formatted messageId:', messageId);
                             const isMessageIdFound = await messageIdExists(connection, messageId);
+                            console.log('Is messageId Found:', isMessageIdFound);
 
                             if (isMessageIdFound) {
                                 foundMessageId = messageId;
                             }
                             if (checkSubject === 'Delivery Status Notification (Failure)') {
-                                await updateBouncedMails(messageId);
+                                await updateBouncedMails(messageId, connection);
                             }
                         }
                     });
 
                     mailparser.on("data", (data) => {
                         if (data.type === 'text') {
-                            console.log(`Body: ${data.text}`); 
+                            console.log(`Body: ${data.text}`);
                         }
                     });
 
                     mailparser.on("end", () => {
                         console.log(`Completed parsing for seqno: ${seqno}`);
-                        resolveMail();
+                        resolveMail(foundMessageId);
+                    });
+
+                    mailparser.on("error", (error) => {
+                        console.error('MailParser error:', error);
+                        rejectMail(error);
                     });
                 });
 
@@ -278,20 +292,22 @@ async function getReceivedEmails(imap, senderEmail, connection) {
             });
 
             f.once("error", function(err) {
-                console.log("Fetch error: ", err);
+                console.error("Fetch error: ", err);
                 reject(err);
             });
 
             f.once("end", function() {
                 console.log(`Fetching complete.`);
-                Promise.all(fetchPromises).then(() => {
+                console.log('fetchPromises', fetchPromises)
+                Promise.all(fetchPromises).then((foundMessageIds) => {
                     console.log(`Done processing all unseen messages from ${senderEmail}.`);
-                    resolve(foundMessageId);
+                    resolve(foundMessageIds.filter(id => id !== null));
                 }).catch(reject);
             });
         });
     });
 }
+
 
 module.exports = {
     processUpdateRepliesStatus,

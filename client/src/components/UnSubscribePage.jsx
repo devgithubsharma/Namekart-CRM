@@ -9,7 +9,7 @@ function UnSubscribePage() {
     useEffect(()=>{
         const updateUnsubscribeStatus = async () =>{
             try{
-                const response = await axios.put(`http://localhost:3001/api/updateUnsubscribeStatus/${campId}/${mailId}`);
+                const response = await axios.put(`https://crmapi.namekart.com/api/updateUnsubscribeStatus/${campId}/${mailId}`);
                 console.log(response)
 
             }catch(err){

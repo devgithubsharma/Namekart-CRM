@@ -16,7 +16,7 @@
     left: 60%;
     transform: translate(-50%, -50%);
     width: 1400px; 
-    height: 450px; 
+    max-height: 500px; 
     background: #fff;
     padding: 20px;
     border-radius: 10px;

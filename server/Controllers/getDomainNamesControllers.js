@@ -2,13 +2,14 @@ const dbConnection = require('../dbConnection');
 
 const getDomainNames = async (req,res) =>{
     const titleId = req.params.titleId
+    const userId = req.params.userId
     let connection;
 
     try{
        connection = await dbConnection.getConnection();
-        const query = "SELECT domains FROM listsdata WHERE title_id  = ?"
+        const query = "SELECT domains FROM listsdata WHERE title_id  = ? AND userId = ?"
 
-        await connection.query(query,[titleId],(err,result)=>{
+        await connection.query(query,[titleId,userId],(err,result)=>{
             if(err){
                 console.error('Error in fetching domains:', err);
                 res.status(500).send('Error fetching domains');

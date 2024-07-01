@@ -15,27 +15,44 @@ import UnSubscribePage from './components/UnSubscribePage';
 import DomainLinkPage from './components/DomainLinkPage';
 import EmailChatting from './components/EmailChatting';
 import ChatBox from './components/ChatBox';
+import Signup from './components/Authentication/SignUp';
+import Login from './components/Authentication/Login';
+import AuthenticatedRoute from './components/AuthenticatedRoute';
+import TermsAndServices from './components/TermsAndServices';
+import PrivacyPolicy from './components/PrivacyPolicy';
+
+
+
+// import { LocalizationProvider } from '@mui/x-date-pickers';
+// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 function App() {
   return (
-  <Router>
+    // basename={'/crm'}
+  <Router basename={'/crm'}>
     <Routes>
-      <Route path='/' element={<Home/>}>
-        <Route path="/contacts" element={< Contacts/>} />
-        <Route path='/createContacts' element={<CreateContacts/>} />
-        <Route path='/uploadContacts' element={<UploadContacts />} />
-        <Route path='/manualCampaigns' element={<Campaigns/>}/>
-        <Route path='/chattingMessages' element={<EmailChatting/>}/>
-        <Route path='/campaignStatus' element={<CampaignStatus/>}/>
-        <Route path='/mailingCampaigns' element={<MailingCampaigns/>}/>
-        <Route path="/receivingEmails" element={<ReceivingEmail />} />
-        <Route path='/userEmails' element={<SendersEmails/>}/>
-        <Route path="/chats/:threadId" element={<ChatBox />} />
+    <Route path="/" element={<Signup/>}/>
+    <Route path="/login" element={<Login/>}/>
+      <Route path='/home' element={<Home/>}>
+        <Route path="/home/contacts" exact element={<AuthenticatedRoute> < Contacts/> </AuthenticatedRoute>} />
+        <Route path='/home/createContacts' exact element={<AuthenticatedRoute> <CreateContacts/> </AuthenticatedRoute>} />
+        <Route path='/home/uploadContacts' element={<UploadContacts />} />
+        <Route path='/home/manualCampaigns' exact element={<AuthenticatedRoute> <Campaigns/> </AuthenticatedRoute>}/>
+        <Route path='/home/chattingMessages' exact element={<AuthenticatedRoute><EmailChatting/></AuthenticatedRoute>}/>
+        <Route path='/home/campaignStatus' exact element={<AuthenticatedRoute><CampaignStatus/></AuthenticatedRoute>}/>
+        <Route path='/home/mailingCampaigns' exact element={<AuthenticatedRoute> <MailingCampaigns/> </AuthenticatedRoute>}/>
+        <Route path="/home/receivingEmails" element={<ReceivingEmail/>} />
+        <Route path='/home/userEmails' exact element={<AuthenticatedRoute><SendersEmails/></AuthenticatedRoute>}/>
+        <Route path="/home/chats/:threadId" element={<ChatBox/>} />
+        <Route path="/home/termsAndServices" element={<TermsAndServices/>} />
+        <Route path="/home/privacyPolicy" element={<PrivacyPolicy/>} />
       </Route>
+      
       <Route path='/unsubscribe/:campId/:mailId' element={<UnSubscribePage/>}></Route>
       <Route path='/domainLink/:campId/:mailId/:domainLink' element={<DomainLinkPage/>}></Route>
     </Routes>
   </Router> 
+  
   );
 }
 

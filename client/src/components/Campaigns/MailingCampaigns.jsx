@@ -27,7 +27,7 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { SingleInputTimeRangeField } from '@mui/x-date-pickers-pro/SingleInputTimeRangeField';
 import CloseIcon from '@mui/icons-material/Close';
@@ -41,8 +41,20 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { updateCampaignStatus } from '../IndexedDB/CampaignStatusIdb';
 import { fetchCampaignStatus } from '../IndexedDB/CampaignStatusIdb';
-
-
+import { Snackbar } from '@mui/material';
+import {saveSequences} from '../../api'
+import {updateSequences} from '../../api'
+import {deleteSequence} from '../../api'
+import {fetchSenderEmails} from '../../api'
+import {fetchSequenceDetails} from '../../api'
+import {deleteStep} from '../../api'
+import {fetchUpdatedSequence} from '../../api'
+import {fetchTag} from '../../api'
+import {fetchSenderNames} from '../../api'
+import {fetchListData} from '../../api'
+import {fetchDomainNames} from '../../api'
+import {deleteCampaigns} from '../../api'
+import {startCampaigns} from '../../api'
 
 const useStyles = makeStyles({
   tab: {
@@ -115,6 +127,16 @@ const theme = createTheme({
   },
 });
 
+
+// function scheduleFunction() {
+//   return (
+//     <LocalizationProvider dateAdapter={AdapterDayjs}>
+//       <MailingCampaigns />
+//     </LocalizationProvider>
+//   );
+// }
+
+
 function MailingCampaigns() {
   const [value, setValue] = useState('1');
   const [value1,setValue1] = useState('1')
@@ -157,7 +179,16 @@ function MailingCampaigns() {
   const [domainNames,setDomainNames] = useState([]);
   const [isCampaignRunning, setIsCampaignRunning] = useState(false);
   const [isFirstEmail, setIsFirstEmail] = useState(true);
- 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snapshotEffect, setSnapshotEffect] = useState(false);
+  const [senderNames, setSenderNames] = useState([])
+  const [receiverName, setReceiverName] = useState([]);
+  const [domainLink,setDomainLink] = useState([]);
+  const [leads,setLeads] = useState([])
+  // const isSaveEnabled = sequences.some(seq => seq.steps.some(step => !step.isSaved));
+  // const isUpdateEnabled = sequences.some(seq => seq.steps.some(step => step.isSaved && step.isUpdated));
+  
 
   const navigate = useNavigate();                   
   const location = useLocation();
@@ -165,6 +196,12 @@ function MailingCampaigns() {
   const campName = location.state.campName;
   const titleId = location.state.titleId;
   const campId = location.state.campId;
+  const userId = location.state.userId
+
+  console.log("CampName",campName)
+  console.log("titleId",titleId)
+  console.log("campId",campId)
+  console.log("userId",userId)
 
   const sequenceIndex = sequences.findIndex(seq => seq.id === activeSequenceTab);
   const stepIndex = sequences[sequenceIndex]?.steps.findIndex(step => step.id === selectedStep);
@@ -191,10 +228,15 @@ function MailingCampaigns() {
   },[sequences])
 
 
-  // useEffect(() => {
-  //   setDelays(Array(emailSteps.length - 1).fill({ days: 3 }));
-  // }, [emailSteps.length]);
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+};
   
+  const triggerSnapshotEffect = () => {
+    setSnapshotEffect(true);
+    setTimeout(() => setSnapshotEffect(false), 100); // Duration of snapshot effect
+  };
+
   const DelayComponent = ({ delay, setDelay, index }) => {
     const handleIncrement = () => {
       setDelay(index, delay[index].days + 1);
@@ -233,7 +275,7 @@ function MailingCampaigns() {
     const [name, setName] = useState(sequence?.name || '');
     const [isEnabled, setIsEnabled] = useState(sequence?.isEnabled || false);
   
-    // console.log('sequence',sequence)
+    
     useEffect(() => {
       if (sequence) {
         setName(sequence.name || '');
@@ -264,12 +306,6 @@ function MailingCampaigns() {
         <DialogActions>
           <Button onClick={onCancel} style={{color:'black'}} >Cancel</Button>
           <Button onClick={() => onDelete(sequence.id)} 
-          // style={{
-          //   color: sequencesLength <= 1 ? "rgba(0, 0, 0, 0.26)" : "red",
-          //   cursor: sequencesLength <= 1 ? "default" : "pointer",
-          //   pointerEvents: sequencesLength <= 1 ? "none" : "auto"
-          // }}
-          // disabled={sequencesLength <= 1}
           >Delete Sequence</Button>
           
           <Button onClick={() => onSave(sequence.id, name, isEnabled)} style={{backgroundColor:'#009900',color:'white', borderRadius:'15px'}}>Save</Button>
@@ -291,12 +327,10 @@ function MailingCampaigns() {
     setIsEditSequenceDialogOpen(false);
   };
 
-
-
   const saveSequence = async () => {
     const sequenceData = {
         sequenceName: activeSequence.name,
-        campaignId: campId, 
+        // campaignId: campId, 
         isNew:activeSequence.isNew,
         steps: activeSequence.steps
     }
@@ -304,13 +338,18 @@ function MailingCampaigns() {
     console.log(sequenceData)
 
     try {
-        const response = await axios.post('http://localhost:3001/api/saveSequenceDetails', sequenceData);
+        // const response = await axios.post('https://crmapi.namekart.com/api/saveSequenceDetails', sequenceData);
+        const response = await saveSequences(sequenceData);
         console.log(response.data);
+        setSnackbarMessage('Sequence saved successfully!');
+        triggerSnapshotEffect();
+        
     } catch (error) {
         console.error('Error saving sequence:', error);
+        setSnackbarMessage('Failed to save sequence.');
     }
+    setSnackbarOpen(true);
 };
-
 
 
 const handleUpdateSequence = async () => {
@@ -319,25 +358,31 @@ const handleUpdateSequence = async () => {
     console.error('No active sequence found for updating.');
     return;
   }
-  try {
-    const response = await axios.put('http://localhost:3001/api/updateSequenceDetails', {
-      sequenceId: sequenceToUpdate.id,
-      sequenceName: sequenceToUpdate.name,
-      steps: sequenceToUpdate.steps,
-    });
 
+  try {
+    console.log("sequenceToUpdate.steps",sequenceToUpdate.steps)
+    // const response = await axios.put('https://crmapi.namekart.com/api/updateSequenceDetails', {
+    //   sequenceId: sequenceToUpdate.id,
+    //   sequenceName: sequenceToUpdate.name,
+    //   steps: sequenceToUpdate.steps,
+    // });
+    const response = await updateSequences(sequenceToUpdate.id,sequenceToUpdate.name,sequenceToUpdate.steps)
     console.log('Sequence updated successfully:', response.data);
+    setSnackbarMessage('Sequence updated successfully!');
+    triggerSnapshotEffect();
+
   } catch (error) {
     console.error('Error updating sequence:', error);
+    setSnackbarMessage('Failed to update sequence.');
   }
+  setSnackbarOpen(true);
 };
-
-
 
 
 const handleDeleteSequence = async (id) => {
   try {
-    await axios.delete(`http://localhost:3001/api/deleteSequence/${id}`);
+    // await axios.delete(`https://crmapi.namekart.com/api/deleteSequence/${id}`);
+    await deleteSequence(id)
     console.log('Sequence deleted successfully');
 
     const sequenceIndex = sequences.findIndex(sequence => sequence.id === id);
@@ -352,7 +397,7 @@ const handleDeleteSequence = async (id) => {
         newActiveTabId = updatedSequences[sequenceIndex] ? updatedSequences[sequenceIndex].id : updatedSequences[0].id;
       }
     } else {
-      const defaultSequence = { id: 'default', name:'Seq', isEnabled:true, steps: [{ id:`${activeSequence.id}-${Date.now()}`,
+      const defaultSequence = { id: 'default', name:'Seq', isEnabled:true, isNew: true, steps: [{ id:`${activeSequence.id}-${Date.now()}`,
       name:'',
       subject: '',
       pretext: '',
@@ -374,7 +419,6 @@ const handleDeleteSequence = async (id) => {
 };
 
   
-
 const toggleSequenceEnabled = (sequenceId) => {
   const updatedSequences = sequences.map((sequence) => {
     if (sequence.id === sequenceId) {
@@ -439,12 +483,12 @@ const toggleSequenceEnabled = (sequenceId) => {
   };
   
 
-
   const startRename = (index) => {
     setRenamingStepIndex(index);
     setTempStepName(emailSteps[index].name || `Step ${index + 1}`);
     setIsRenameDialogOpen(true);
   };
+
 
   const submitRename = () => {
     const updatedSteps = emailSteps.map((step, idx) =>
@@ -467,13 +511,20 @@ const toggleSequenceEnabled = (sequenceId) => {
   };
 
   const handleMenuClick = (event, sequenceId, stepId) => { 
+    console.log("stepId",stepId)
+    console.log("sequenceId",sequenceId)
     event.stopPropagation();
     // Toggle menu only if the same menu is clicked again, or open a new one 
     console.log(openMenu?.stepId === stepId) 
     console.log(openMenu?.sequenceId === sequenceId) 
-    const isCurrentMenuOpen = openMenu?.sequenceId === sequenceId && openMenu.stepId === stepId;
+    const isCurrentMenuOpen = openMenu?.sequenceId === sequenceId && openMenu?.stepId === stepId;
     console.log(isCurrentMenuOpen) 
-    setOpenMenu(isCurrentMenuOpen ? { sequenceId: null, stepId: null } : { sequenceId, stepId }); 
+    if(isCurrentMenuOpen){
+      setOpenMenu({ sequenceId: null, stepId: null });
+    }else{
+      setOpenMenu({ sequenceId, stepId });
+    }
+    // setOpenMenu(isCurrentMenuOpen ? { sequenceId: null, stepId: null } : { sequenceId, stepId }); 
 }; 
 
 
@@ -497,6 +548,11 @@ const toggleSequenceEnabled = (sequenceId) => {
     setEmailCnt(event.target.value);
   };
 
+  const cleanAndCountText = (htmlString) => {
+    if (!htmlString) return 0;  // Return 0 if the input is undefined or null
+    const plainText = htmlString.replace(/<[^>]+>/g, '').trim(); // Remove HTML tags and trim whitespace
+    return plainText.length;
+  };
 
   const EmailsSelection = () =>{
     return (
@@ -526,6 +582,7 @@ const toggleSequenceEnabled = (sequenceId) => {
       </FormControl>
     )
   }
+  
 
   const TimeRangeField = () => {
     return (
@@ -539,7 +596,17 @@ const toggleSequenceEnabled = (sequenceId) => {
     );
   };
 
-  function DayCard({ day }) {
+
+  // const TimeRangeField = () => {
+  //   return (
+  //     <LocalizationProvider dateAdapter={AdapterDayjs}>
+  //       <SingleInputTimeRangeField label="From - To" sx={{ minWidth: 250 }} />
+  //     </LocalizationProvider>
+  //   );
+  // };
+
+
+  function DayCard({ day,intervals, setIntervals }) {
   
     const handleAddInterval = () => {
       if (intervals.length < 3) {
@@ -552,7 +619,7 @@ const toggleSequenceEnabled = (sequenceId) => {
       const updatedIntervals = intervals.filter((interval) => interval.id !== id).map((interval, index) => ({ ...interval, id: index + 1 }));
       setIntervals(updatedIntervals);
     };
-  
+
     return (
       <div className='daycard-container'>
         <h3 className='daycard-heading'>
@@ -572,16 +639,18 @@ const toggleSequenceEnabled = (sequenceId) => {
       </div>
     )}
 
+
   useEffect(() =>{
-    const fetchSenderEmails = async () =>{
+    const fetchSendersEmails = async () =>{
       try{
-        const response = await axios.get('http://localhost:3001/api/getSenderEmails')
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getSenderEmails/${userId}`)
+        const response = await fetchSenderEmails(userId)
         setSenderEmails(response.data.result)
       }catch(err){
         console.error('Error in fetching senders emails:', err);
       }
     }
-    fetchSenderEmails();
+    fetchSendersEmails();
   },[])
 
 
@@ -628,9 +697,10 @@ const toggleSequenceEnabled = (sequenceId) => {
 
 
   useEffect(() => {
-    const fetchSequenceDetails = async () => {
+    const fetchSequencesDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/seqDetails`);
+        // const response = await axios.get(`https://crmapi.namekart.com/api/seqDetails`);
+        const response = await fetchSequenceDetails()
         console.log(response)
         const fetchedData = response.data.result; 
         const sequencesMap = fetchedData.reduce((acc, currentItem) => {
@@ -685,36 +755,101 @@ const toggleSequenceEnabled = (sequenceId) => {
       } catch (error) {
         console.error('Error fetching sequence details:', error);
       }}
-    fetchSequenceDetails();
+      fetchSequencesDetails();
   }, [campId]); 
   
-  
 
-  const handleDeleteStep = (sequenceId, stepId) => {
-    const updatedSequences = sequences.map((sequence) => {
-      if (sequence.id === sequenceId) {
-        
-        const updatedSteps = sequence.steps.filter(step => step.id !== stepId);
-        return { ...sequence, steps: updatedSteps };
+  const handleDeleteStep = async (sequenceId, stepId) => {
+   console.log("sequenceId",sequenceId)
+   console.log("stepId",stepId)
+    try{
+      
+      // const deleteResponse = await axios.delete(`https://crmapi.namekart.com/api/deleteStep/${stepId}/${sequenceId}`);
+      const deleteResponse = await deleteStep(stepId,sequenceId)
+      console.log("response",deleteResponse)
+      if (deleteResponse.status === 200){
+        // const fetchUpdateSeq = await axios.get(`https://crmapi.namekart.com/api/fetchUpdatedSequences/${sequenceId}`);
+        const fetchUpdateSeq = await fetchUpdatedSequence(sequenceId)
+        console.log("sequenceResponse", fetchUpdateSeq);
+
+        if (fetchUpdateSeq.status === 200) {
+          const fetchedData = fetchUpdateSeq.data;
+          console.log("fetchedData", fetchedData)
+          const updatedSequence = fetchedData.reduce((acc, currentItem) => {
+            const {
+                sequence_id,
+                sequence_name,
+                step_id,
+                subject,
+                pretext,
+                body,
+                delay
+            } = currentItem;
+
+            if (!acc[sequence_id]) {
+                acc[sequence_id] = {
+                    id: sequence_id.toString(),
+                    name: sequence_name,
+                    isNew: false,
+                    steps: []
+                };
+            }
+
+            acc[sequence_id].steps.push({
+                id: step_id,
+                subject,
+                pretext,
+                body,
+                delay
+            });
+
+            return acc;
+        }, {}) // Directly access the updated sequence using sequenceId
+
+        // Convert the map back to an array
+        const updatedSequences = Object.values(updatedSequence);
+        console.log("sequences",updatedSequences)
+          // const updatedSequences = sequences.map(sequence => 
+          //     sequence.id === sequenceId ? updatedSequence : sequence
+          // );
+
+          console.log("updatedSequences", updatedSequences)
+          setSequences(updatedSequences);
+          setActiveSequenceTab(updatedSequences[0].id);
+          if (selectedStep === stepId) {
+              setSelectedStep(null);
+          }
+
+          setOpenMenu({ sequenceId: null, stepId: null });
+      } else {
+          console.error("Failed to fetch updated sequence data");
       }
-      return sequence;
-    });
-   
-    setSequences(updatedSequences);
-    if (selectedStep === stepId) {
-      setSelectedStep(null);
+  } else {
+      console.error("Failed to delete step on server");
+  }
+    }catch(err){
+      console.log("Error in deleting step",err)
     }
-    setOpenMenu({ sequenceId: null, stepId: null });
   };
   
-  
+
+  // const handleCheckboxChange = (emailId) => {
+  //   setSelectedSenderEmails(prev => {
+  //     if (prev.includes(emailId)) {
+  //       return prev.filter(id => id !== emailId);
+  //     } else {
+  //       return [...prev, emailId];
+  //     }
+  //   });
+  // };
 
 
   useEffect(() => {     
     const fetchTags = async () => {
       console.log('Fetch tags called')   
       try {
-        const response = await axios.get('http://localhost:3001/api/fetchTags'); 
+        // const response = await axios.get(`https://crmapi.namekart.com/api/fetchTags/${userId}`); 
+        const response = await fetchTag(userId)
         setTags(response.data.result);   
       } catch (error) {  
         console.error('Error fetching tags:', error); 
@@ -724,18 +859,43 @@ const toggleSequenceEnabled = (sequenceId) => {
   }, []);
 
 
+  useEffect(() => {
+  const fetchSendersNames = async () => {
+    if (senderSelected.length > 0) {
+      // const queryParam = senderSelected.join(',');
+      try {
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getSenderNames/${userId}?ids=${senderSelected}`);
+        const response = await fetchSenderNames(userId,senderSelected)
+        console.log(response);
+        setSenderNames(response.data.result);
+      } catch (err) {
+        console.error('Error in fetching senders names:', err);
+      }
+    } else {
+      setSenderNames([]); // Clear names if no emails are selected
+    }
+  };
+  fetchSendersNames();
+}, [senderSelected]); // Depend on selectedSenderEmails to refetch when it changes
 
 
   useEffect(()=>{
     console.log('senderSelected: ', senderSelected)
   },[senderSelected])
   
+useEffect(()=>{
+    console.log('senderName: ', senderNames)
+  },[senderNames])
 
   useEffect(() => {
     const fetchEmails = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/getEmailsByListId/${titleId}`);
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getEmailsByListId/${titleId}/${userId}`);
+        const response = await fetchListData(titleId,userId)
         setEmails(response.data.emails);
+        setReceiverName(response.data.names)
+        setDomainLink(response.data.links)
+        setLeads(response.data.leads)
       } catch (error) {
         console.error('Error fetching emails:', error);
       }
@@ -745,16 +905,16 @@ const toggleSequenceEnabled = (sequenceId) => {
 
 
   useEffect(() =>{
-  
-    const fetchDomainNames = async () => {
+    const fetchDomainsNames = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/getDomainNames/${titleId}`);
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getDomainNames/${titleId}/${userId}`);
+        const response = await fetchDomainNames(titleId,userId)
         setDomainNames(response.data.domains);
       } catch (error) {
         console.error('Error fetching emails:', error);
       }
     }
-    fetchDomainNames();
+    fetchDomainsNames();
   },[titleId])
 
 
@@ -809,7 +969,8 @@ const toggleSequenceEnabled = (sequenceId) => {
     console.log(selectedTag)
     if (selectedTag && selectedTag.title_id) {
       try {
-        const response = await axios.get(`http://localhost:3001/api/getEmailsByListId/${selectedTag.title_id}`);
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getEmailsByListId/${selectedTag.title_id}/${userId}`);
+        const response = await fetchListData(selectedTag.title_id,userId)
         setEmails(response.data.emails); 
         setDomainNames(response.data.domains)
         setConfirmedTag(selectedTag);
@@ -859,6 +1020,7 @@ const toggleSequenceEnabled = (sequenceId) => {
 
 
   const handleStepClick = (stepId) => {
+    console.log("stepId",stepId)
 
     if(isNewStepId(stepId)){
       console.log(stepId)
@@ -938,7 +1100,7 @@ const toggleSequenceEnabled = (sequenceId) => {
           body: '',
           delay: 3,
           id: `${sequenceId}-${Date.now()}`,
-          name: `FollowUp ${seq.steps.length + 1}`,
+          name: `FollowUp ${seq.steps.length}`,
         };
         return { ...seq, steps: [...seq.steps, newStep] };
       }
@@ -967,17 +1129,18 @@ const toggleSequenceEnabled = (sequenceId) => {
 
   const handleBackToCampaign = (e) =>{
     e.preventDefault()
-    navigate('/campaigns')
+    navigate('/home/manualCampaigns')
   }
 
   const deleteCampaign = async (e) => {
     e.preventDefault()
     try{
-      const response = await axios.delete('http://localhost:3001/api/deleteCampaign',{
-        data: { campId: campId } 
-      })
+      // const response = await axios.delete('https://crmapi.namekart.com/api/deleteCampaign',{
+      //   data: { campId: campId } 
+      // })
+      const response = await deleteCampaigns(campId)
       console.log('Delete response',response) 
-      navigate('/campaigns');
+      navigate('/home/manualCampaigns');
 
     }catch(err){
       console.log('Error in deletion of campaign',err);
@@ -996,25 +1159,34 @@ const toggleSequenceEnabled = (sequenceId) => {
       let cumulativeDelay = 0;
       updateCampaignStatus(campId, "running");
 
-      for (const step of sequenceToSend.steps) {
-        
+      for (let i = 0; i < sequenceToSend.steps.length; i++) {
+        const step = sequenceToSend.steps[i];
+
+        console.log(step)
         const campaignData = {
           receiversEmails: emails, 
           sendersEmails: senderSelected,
+          senderNames: senderNames,
+          receiverName:receiverName,
+          leads:leads,
           subject: step.subject,
           pretext: step.pretext,
           emailBody: step.body,
           delay: cumulativeDelay, 
           domains:domainNames,
-          isFirstEmail: isFirstEmail,
-          campId:campId
+          campId: campId,
+          stepCount:i+1,
+          domainLinks: domainLink,
+          userId:userId,
+          campRunningType:"simpleCampaign"
         };
 
-        navigate('/campaigns')
-        const response = await axios.post('http://localhost:3001/api/startCampaign', campaignData);
+        navigate('/home/manualCampaigns',{ replace: true })
+        // const response = await axios.post('https://crmapi.namekart.com/api/startCampaign', campaignData);
+        const response = await startCampaigns(campaignData);
         setIsFirstEmail(false)
         console.log("Response:", response);  
-        cumulativeDelay = step.delay* 24 * 60 * 60 * 1000; 
+        cumulativeDelay = step.delay;
       }
       
       updateCampaignStatus(campId, "completed");
@@ -1035,23 +1207,36 @@ const toggleSequenceEnabled = (sequenceId) => {
   }, [campId]);
   
 
+
   return (
+  <div style={{ position: 'relative' }}>
+    {snapshotEffect && (
+        <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            zIndex: 1000,
+            transition: 'opacity 0.5s'
+        }} />
+    )}
+
     <div className="mailing-page">
-      {/* <div className="mailing-alert">
-        {isCampaignStarted ? "Campaign is running" : "Campaign is stopped"}
-      </div>  */}
       <div onClick={handleBackToCampaign} className="mailing-navigation">
             ← Campaigns
       </div>  
+
       <div className='mailing-header'>  
         <h1>{campName}</h1>  
         <div className="mailing-controls">     
-          <button onClick={deleteCampaign} className='delete'>Delete campaign</button>
+          <button onClick={deleteCampaign} className='delete' disabled={isCampaignRunning}>Delete campaign</button>
           <button onClick={startCampaign} disabled={isCampaignRunning} className='start-campaign'>Start Campaign</button>
         </div> 
       </div> 
       
-    <div className="mailing-tabs">
+  <div className="mailing-tabs">
       <TabContext value={value}>
           <TabList onChange={handleChange} aria-label="lab API tabs example"
           sx={{
@@ -1086,7 +1271,8 @@ const toggleSequenceEnabled = (sequenceId) => {
               }
             }}/>
           </TabList>
-        <TabPanel value="1">
+
+    <TabPanel value="1">
         <div className="contact-info">
           <h3>Contact filters</h3>
           <Box 
@@ -1234,9 +1420,12 @@ const toggleSequenceEnabled = (sequenceId) => {
             </div>
           </div>
         </TabPanel>
+
         <TabPanel value="3">
+
           <div className='schedule-contanier'>
               <h2>Select schedule settings</h2>
+              
               <div className='schedule-cards'>
                  <Card className={`card-container ${selectedCard === 0 ? 'selected' : ''}`} onClick={() => handleCardClick(0)} sx={{ width:750, height:180}}>
                     <CardContent>
@@ -1254,7 +1443,10 @@ const toggleSequenceEnabled = (sequenceId) => {
                       </Typography>
                     </CardContent>
                  </Card>
-                 <Card  className={`card-container ${selectedCard === 1 ? 'selected' : ''}`} onClick={() => handleCardClick(1)} sx={{ width:750, height:180}}>
+
+                 <Card  className={`card-container ${selectedCard === 1 ? 'selected' : ''}`} 
+                //  onClick={() => handleCardClick(1)} 
+                 sx={{ width:750, height:180}}>
                     <CardContent>
                       <Typography sx={{fontWeight:550, marginLeft:15}} variant='h6' component="div">
                           Custom
@@ -1264,6 +1456,7 @@ const toggleSequenceEnabled = (sequenceId) => {
                       </Typography>
                     </CardContent>
                  </Card>
+
               </div>
 
               <div className='card-details'>
@@ -1291,13 +1484,15 @@ const toggleSequenceEnabled = (sequenceId) => {
                 )}
               </div>
           </div>
-        </TabPanel>
+      </TabPanel>
+
+
 
 <TabPanel value="4">
 
-  <TabContext value={activeSequenceTab}>
-  <Box >
+<TabContext value={activeSequenceTab}>
 
+  <Box >
     <TabList
       onChange={(event, newValue) => setActiveSequenceTab(newValue)}
       aria-label="sequence tabs example"
@@ -1320,7 +1515,6 @@ const toggleSequenceEnabled = (sequenceId) => {
       }}
     />
   ))}
-
     </TabList>
   </Box>
   
@@ -1372,19 +1566,17 @@ const toggleSequenceEnabled = (sequenceId) => {
       onDelete={() => handleDeleteSequence(activeSequence.id)}
       onToggleEnabled={() => toggleSequenceEnabled(currentSequence.id)}
       sequencesLength={sequences.length}
-    />
+/>
 
-    <div className="sequence-container">
-      <div className="sequence-steps">
-
+  <div className="sequence-container">
+    <div className="sequence-steps">
       {activeSequence && activeSequence.steps.map((step, index) => (
-
     <React.Fragment key={step.id || step.step_id}>
       <div className="email-step-box" onClick={() => handleStepClick(step.id || step.step_id)} style={{cursor:'pointer'}}>
         <div className="email-step-header">
           <div className="email-step-header-left">
             <EmailIcon className="icon" />
-            {step.name || (index === 0 ? 'First email' : `Follow up ${index + 1}`)}
+            {step.name || (index === 0 ? 'First email' : `Follow up ${index }`)}
           </div>
 
           <div className="email-step-header-right">
@@ -1397,11 +1589,11 @@ const toggleSequenceEnabled = (sequenceId) => {
               onClick={(e) => handleMenuClick(e, activeSequence.id, step.step_id || step.id)}
             />
 
-            {openMenu?.sequenceId === activeSequence.id && (openMenu.stepId === step.step_id || step.id) && (
+            {openMenu?.sequenceId === activeSequence.id && openMenu?.stepId === (step.step_id || step.id) && (
               <div className="menu-options" onClick={(e) => e.stopPropagation()}>
                 <div className="menu-item" onClick={() => startRename(activeSequence.id, step.id)}><DriveFileRenameOutlineTwoToneIcon/> &nbsp; Rename</div>
                 <div className="menu-item" onClick={() => {/* handleEditStep(sequence.id, step.id) */}}><ModeEditIcon/> &nbsp; Edit this step</div>
-                <div className="menu-item" onClick={() => handleDeleteStep(activeSequence.id, step.id)}><ClearIcon style={{color:'red'}}/> &nbsp; Delete this step</div>
+                <div className="menu-item" onClick={() => handleDeleteStep(activeSequence.id, step.step_id || step.id)}><ClearIcon style={{color:'red'}}/> &nbsp; Delete this step</div>
               </div>
             )}
           </div>
@@ -1441,10 +1633,11 @@ const toggleSequenceEnabled = (sequenceId) => {
                       onChange={(e) => handleStepChange(activeSequence.id, step.step_id || step.id, 'pretext', e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />
-                    <CharacterCount text={step.subject} maxLength={200} />
+                    <CharacterCount text={step.pretext} maxLength={200} />
                   </>
         
                   <>
+
                   <div onClick={(e) => e.stopPropagation()}>     
                     <ReactQuill
                       className='my-quill-editor'
@@ -1453,14 +1646,13 @@ const toggleSequenceEnabled = (sequenceId) => {
                       onChange={(content) => handleStepChange(activeSequence.id, step.step_id || step.id, 'body', content)}
                     />
                   </div>
-                    <CharacterCount text={step.subject} maxLength={200} />
+                    <CharacterCount text={cleanAndCountText(step.body)} maxLength={500} />
                   </>
                 </div>  
           )}
         </>
         }
       </div>
-
 
       {index < activeSequence.steps.length - 1 && (
       <div style={{display:'flex', alignItems:'center'}}>
@@ -1477,9 +1669,9 @@ const toggleSequenceEnabled = (sequenceId) => {
         </IconButton>
       </div>
     )}
+    
     </React.Fragment>
   ))}
-
 
           <RenameDialog
               open={isRenameDialogOpen}
@@ -1494,17 +1686,17 @@ const toggleSequenceEnabled = (sequenceId) => {
                 setRenamingStepIndex(null);
               }}
           />
-
           </div>
+
           <div className="sequence-controls">
             <button onClick={() => addEmailStepToSequence(activeSequence.id)} className="add-step-button">Add Step</button>
-            <button className="save-sequence-button" 
-            style={{cursor:'pointer'}} 
-            onClick={saveSequence}
-            disabled={!sequences.find(seq => seq.id === activeSequenceTab)?.isNew}
-            >
-              Save Sequence
-              </button>
+                <button className="save-sequence-button" 
+                style={{cursor:'pointer'}} 
+                onClick={saveSequence}
+                disabled={!sequences.find(seq => seq.id === activeSequenceTab)?.isNew}
+                >
+                Save Sequence
+            </button>
 
             <button onClick={handleUpdateSequence} 
             style={{cursor:'pointer'}}
@@ -1517,9 +1709,19 @@ const toggleSequenceEnabled = (sequenceId) => {
 
       </TabPanel>
     </TabContext>
+    
   </div>
 </div>
+
+      <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={6000}
+            onClose={handleSnackbarClose}
+            message={snackbarMessage}
+        />
+</div>
+            
 )}
 
 
-export default MailingCampaigns
+export default MailingCampaigns;

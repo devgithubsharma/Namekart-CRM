@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useContext } from 'react';
 import '../../style/Campaigns.css';
 import Modal from 'react-modal';
 import axios from 'axios';
@@ -12,6 +12,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import ClearIcon from '@mui/icons-material/Clear';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import QuickCampaignModal from './QuickCampaign';
+import { GlobalContext } from '../ContextApi/GlobalContext';
+import {fetchTag} from '../../api'
+import {fetchCampaign} from '../../api'
+import {deleteCampaigns} from '../../api'
+import {saveCampaign} from '../../api'
 
 Modal.setAppElement('#root'); 
   
@@ -28,7 +33,9 @@ function Campaigns() {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const [isQuickCampaignModalOpen, setIsQuickCampaignModalOpen] = useState(false);
+  const { userId } = useContext(GlobalContext);
 
+  console.log("userId",userId)
 
   const handleOpenModal = () => {
     setIsQuickCampaignModalOpen(true);
@@ -38,12 +45,15 @@ function Campaigns() {
     setIsQuickCampaignModalOpen(false);
   };
    
+
   useEffect(() => {     
     const fetchTags = async () => {
       console.log('Fetch tags called')   
       try {
-        const response = await axios.get('http://localhost:3001/api/fetchTags'); 
-        setTags(response.data.result);   
+        // const response = await axios.get(`https://crmapi.namekart.com/api/fetchTags/${userId}`); 
+        const response = await fetchTag(userId)
+        setTags(response.data.result);  
+        console.log("tags",response.data.result) 
       } catch (error) {  
         console.log('Error fetching tags:', error); 
       }   
@@ -51,20 +61,26 @@ function Campaigns() {
     fetchTags();  
   }, []);
 
-  const fetchCampaigns = async () => {
-    try {
-      const response = await axios.get('http://localhost:3001/api/getCampaignsData');
-      console.log(response.data)
-      setCampaigns(response.data.result);
-    } catch (error) {
-      console.log('Error fetching campaigns:', error);
-    }
-  };
 
-  useEffect(() => {
-  fetchCampaignss().then((res)=>{console.log(res.data)
-    setCampaigns(res.data.result);}).catch((err)=>{console.log('Error fetching campaigns:', err);});
-}, []);
+  useEffect(()=>{
+    const fetchCampaigns = async () => {
+      try {
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getCampaignsData/${userId}`);
+        const response = await fetchCampaign(userId)
+        console.log(response.data)
+        setCampaigns(response.data.result);
+      } catch (error) {
+        console.log('Error fetching campaigns:', error);
+      }
+    };
+    fetchCampaigns();
+  },[])
+  
+
+//   useEffect(() => {
+//   fetchCampaignss().then((res)=>{console.log(res.data)
+//     setCampaigns(res.data.result);}).catch((err)=>{console.log('Error fetching campaigns:', err);});
+// }, []);
 
 
   useEffect(() => {
@@ -87,10 +103,11 @@ function Campaigns() {
   const handleRowClick = (params) => {
     const clickedCampaign = campaigns.find(campaign => campaign.camp_name === params.row.camp_name);
 
-    navigate('/mailingCampaigns', { state: {
+    navigate('/home/mailingCampaigns', { state: {
       campName: clickedCampaign.camp_name,
       titleId: clickedCampaign.title_id,
-      campId: clickedCampaign.camp_id
+      campId: clickedCampaign.camp_id,
+      userId:userId
     }});
   };
 
@@ -102,14 +119,17 @@ function Campaigns() {
     setSelectedTag(selectedTagObject);
   };
 
+  
   const deleteCampaign = async (campId) => {
     // e.preventDefault()
     console.log(campId)
     try{
-      const response = await axios.delete('http://localhost:3001/api/deleteCampaign',{
-        data: { campId: campId } 
-      })
-      const updatedCampaigns = await axios.get('http://localhost:3001/api/getCampaignsData');
+      // const response = await axios.delete('https://crmapi.namekart.com/api/deleteCampaign',{
+      //   data: { campId: campId } 
+      // })
+      const response = await deleteCampaigns(campId)
+      // const updatedCampaigns = await axios.get(`https://crmapi.namekart.com/api/getCampaignsData/${userId}`);
+      const updatedCampaigns = await fetchCampaign(userId)
       setCampaigns(updatedCampaigns.data.result);
 
     }catch(err){
@@ -118,10 +138,21 @@ function Campaigns() {
   };
    
 const columns = [
-  { field: 'camp_name', headerName: 'Campaign Name', width:500 },                   
+  { field: 'camp_name', headerName: 'Campaigns', width:150, renderHeader: (params) => (
+    <strong style={{ fontWeight: 'bold', fontSize: '16px' }}>
+      {params.colDef.headerName}
+    </strong> // Increase font weight and size
+  )
+},                   
   {                    
     field: 'actions',           
-    headerName: '',
+    headerName: 'Actions',
+    renderHeader: (params) => (
+      <div style={{ textAlign: 'right', paddingLeft: '550px', fontWeight: 'bold', fontSize: '16px' }}> {/* Adjust this padding to align with the icon */}
+        {params.colDef.headerName}
+      </div>
+      
+    ),
     renderCell: (params) => {
       const handleOpenMenu = (event) => {
         event.stopPropagation();
@@ -138,7 +169,7 @@ const columns = [
         <IconButton onClick={handleOpenMenu} 
         onFocus={() => setIconButtonFocused(true)}
         onBlur={() => setIconButtonFocused(false)}
-        style={{ cursor: 'pointer',marginLeft:'200px', display: 'flex', 
+        style={{ cursor: 'pointer',marginLeft:'560px', display: 'flex', 
         justifyContent: 'center', alignItems: 'center', ...iconButtonStyle }} >
           <MoreVertIcon />
         </IconButton>
@@ -175,8 +206,7 @@ const rows = [...campaigns].reverse().map((campaign,index) => ({
       setStep(2);
     } else {
       try {
-       axios.post('http://localhost:3001/api/campaignsData', { campaignName, tagName: selectedTag.tags,
-        titleId : selectedTag.title_id }).then(response =>{
+       saveCampaign(campaignName,selectedTag.tags,selectedTag.title_id,userId).then(response =>{
           console.log('Axios success:', response)
           if (response.data.success) {
             setCampaigns(prevCampaigns => [
@@ -186,10 +216,11 @@ const rows = [...campaigns].reverse().map((campaign,index) => ({
         },...prevCampaigns
       ])}    
           handleCancel();
-          navigate('/mailingCampaigns',{state :{
+          navigate('/home/mailingCampaigns',{state :{
             campName:campaignName,
             titleId:selectedTag.title_id,
-            campId:response.data.camp_id
+            campId:response.data.camp_id,
+            userId:userId
           }})   
         }).catch(err =>{
           console.error('Axios error:', err);
@@ -281,10 +312,5 @@ const rows = [...campaigns].reverse().map((campaign,index) => ({
   );
 }
 
-const fetchCampaignss =  () => {
-  
-    return axios.get('http://localhost:3001/api/getCampaignsData');
-    
-};
 
 export default Campaigns;

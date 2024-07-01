@@ -1,19 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import '../../../../style/CsvDisplay.css'
 import { useNavigate } from 'react-router-dom';
 import axios from'axios';
 import { useTagContext } from '../../../ContextApi/TagContext';
 import { Box, TextField, Chip, Button, Typography  } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-  
+// import { DataGrid } from '@mui/x-data-grid';
+import { GlobalContext } from '../../../ContextApi/GlobalContext';
+import { uploadContacts } from '../../../../api';
+import { saveTags } from '../../../../api';
+import { deleteTag } from '../../../../api';
+
+
 function CsvDisplay({ csvData, listTitle, titleId}) { 
   const {data,fileName: csvActualFileName} = csvData;
   const [csvFileName, setCsvFileName] = useState(csvActualFileName || '');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState([]);
   const [proceedClicked, setProceedClicked] = useState(false);
-  const {setTagUpdated} = useTagContext();
+  const [temporaryTag, setTemporaryTag] = useState('');
+  // const {setTagUpdated} = useTagContext();
   const navigate = useNavigate();
+  const { userId } = useContext(GlobalContext);
 
   const handleProceedClick = () => {
     setProceedClicked(true);
@@ -21,37 +28,55 @@ function CsvDisplay({ csvData, listTitle, titleId}) {
   };
 
   const handleTagChange = (event) => {
+    setTemporaryTag(event.target.value);  // Update temporary tag simultaneously
     setTagInput(event.target.value);
 };
      
   console.log(data)
+
+  useEffect(()=>{
+    console.log("data",data)
+  },[data])
   const handleUploadContacts = async () => {
     try {  
       // Upload contacts
-      const uploadResponse = await axios.post('http://localhost:3001/api/listsData/uploadContacts', {
-        titleId: titleId,
-        csvColumns: data[0],     
-        csvValues: data,   
-      });
+      // const uploadResponse = await axios.post('https://crmapi.namekart.com/api/listsData/uploadContacts', {
+      //   titleId: titleId,
+      //   csvColumns: data[0],     
+      //   csvValues: data,   
+      //   userId: userId
+      // });
+      const uploadResponse = await uploadContacts(titleId,userId,data,temporaryTag)
       console.log('Upload Contacts response', uploadResponse);
       
-      navigate('/contacts', { state: {id:titleId} });
+      navigate('/home/contacts', { state: {id:titleId} });
     } catch (err) {
       console.log('Upload Contacts error', err.message);
     }
   };
       
+
   const handleAddTag = async () => {
       try {   
         if(tagInput){      
-        const response = await axios.post('http://localhost:3001/api/lists/addTag', {
-          titleId:titleId,
-          tag: tagInput,
-        });  
-        console.log('Tag Id', response.data);
-        const newTags = { id: response.data.tagIds, tag: tagInput };
-        setTags([...tags,newTags]);
-        setTagInput('');  
+        // const response = await axios.post('https://crmapi.namekart.com/api/lists/addTag', {
+        //   titleId:titleId,
+        //   tag: tagInput,
+        //   userId:userId
+        // });  
+        const response = await saveTags(titleId,tagInput,userId)
+        console.log("response - ",response);
+        if(response.data.message!=="Tag already exist"){
+          console.log('Tag Id', response.data);
+          const newTags = { id: response.data.tagIds, tag: tagInput };
+          setTags([...tags,newTags]);
+          setTagInput('');  
+        }else{
+          const newTags = { tag: tagInput };
+          setTags([...tags,newTags]);
+          setTagInput(''); 
+        }
+        
     }
       } catch (error) { 
         console.error('Error adding tag:', error.message);        
@@ -60,7 +85,7 @@ function CsvDisplay({ csvData, listTitle, titleId}) {
 
   const handleDeleteTag = (tagToDelete) => () => {
     setTags((tags) => tags.filter((tagObject) => tagObject.id !== tagToDelete));
-    axios.delete(`http://localhost:3001/api/deleteTag/${tagToDelete}`)
+    deleteTag(tagToDelete)
     .then(response => {
         console.log('Email deleted:', response.data);
     })                

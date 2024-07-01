@@ -12,6 +12,7 @@ function UploadContacts() {
 
     const listTitle = location.state && location.state.listTitle;
     const titleId = location.state && location.state.titleId;
+    const userId = location.state && location.state.userId;
 
     const handleBackToCreateContacts = () =>{
         navigate(-1)
@@ -21,7 +22,7 @@ function UploadContacts() {
       <div className='upload-contacts'>
         <div onClick={handleBackToCreateContacts} className='uc-backButoon'> &#8592; Back to list selection</div>
         <CsvOptions setCsvData={setCsvData} />
-        {csvData && <CsvDisplay csvData={csvData} listTitle={listTitle} titleId={titleId}/>}
+        {csvData && <CsvDisplay csvData={csvData} listTitle={listTitle} titleId={titleId} userId={userId}/>}
       </div>
     ); 
 }

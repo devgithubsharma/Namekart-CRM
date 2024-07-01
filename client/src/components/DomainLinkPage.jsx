@@ -9,7 +9,7 @@ function DomainLinkPage() {
         const redirectDomainLink = async () =>{
             try{
                 
-                const response = await axios.get(`http://localhost:3001/api/updateDomainLinkStatus/${campId}/${mailId}`);
+                const response = await axios.get(`https://crmapi.namekart.com/api/updateDomainLinkStatus/${campId}/${mailId}`);
                 if(domainLink){
                     // const decodedDomainLink = decodeURIComponent(domainLink);
                     console.log(domainLink);

@@ -4,20 +4,18 @@ const createList = async (req, res) => {
   let connection;
     try {
       const  list_title  = req.body.title;
+      const userId = req.body.userId
+      console.log("list_title",list_title)
       connection = await dbConnection.getConnection();
-
-      // Use a raw SQL query to insert a new list into the 'lists' table
-      const insertQuery = 'INSERT INTO titledata (title) VALUES (?)';
-  
+      const insertQuery = 'INSERT INTO titledata (title,userId) VALUES (?,?)';
+      console.log("userId",userId)
       // Execute the query
-     await connection.query(insertQuery, [list_title], (err,result) =>{
+     await connection.query(insertQuery, [list_title,userId], (err,result) =>{
         if(err){
             console.log(err); 
             res.status(500).json({ error: 'Internal Server Error' }); 
         }else{ 
             console.log('List result', result); 
-                // Release the connection back to the pool 
-            connection.release(); 
             res.status(201).json({ 
               title: { title_id: result.insertId }, 
             });
@@ -26,10 +24,12 @@ const createList = async (req, res) => {
     } catch (error) {
       console.error('Error creating list:', error.message);
 
+     
+      res.status(500).json({ error: 'Internal Server Error' }); 
+    }finally{
       if(connection){
         connection.release(); 
       }
-      res.status(500).json({ error: 'Internal Server Error' }); 
     }
   };
   

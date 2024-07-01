@@ -1,25 +1,22 @@
 const dbConnection = require('../dbConnection');
 
 const getInboxData = async (req,res) =>{
+    const userId = req.params.userId
     let connection;
+
     try{
         connection = await dbConnection.getConnection();
         const query =`SELECT e.threadId, e.campId, e.subject, e.leads, e.emailBody AS recentReply, e.receivedTime
         FROM emailsdata e
         INNER JOIN (
-            SELECT campId, MAX(receivedTime) AS MaxReplyTime
+            SELECT campId, threadId, MAX(receivedTime) AS MaxReplyTime
             FROM emailsdata
-            WHERE emailType = 'received'
-            GROUP BY campId
-        ) AS max_replies ON e.campId = max_replies.campId AND e.receivedTime = max_replies.MaxReplyTime
+            WHERE userId = ? AND emailType = 'received'
+            GROUP BY threadId
+        ) AS max_replies ON e.campId = max_replies.campId AND e.threadId=max_replies.threadId AND e.receivedTime = max_replies.MaxReplyTime
         ORDER BY e.receivedTime DESC`;
 
-        // const query = `SELECT campId, MAX(receivedTime) AS MaxReplyTime 
-        //     FROM emailsdata
-        //     WHERE emailType = 'received'
-        //     GROUP BY campId`
-
-        connection.query(query, (err, results) => {
+        connection.query(query, [userId],(err, results) => {
             if (err) {
                 console.error('Error fetching recent replies:', err);
                 res.status(500).json({ error: 'Internal server error' });

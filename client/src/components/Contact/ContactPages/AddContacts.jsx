@@ -1,30 +1,36 @@
-    import React, { useEffect, useState } from 'react'
+    import React, { useEffect, useState,useContext } from 'react'
     import { Link, useLocation } from 'react-router-dom'
     import '../../../style/AddContacts.css'
     import { DataGrid } from '@mui/x-data-grid';
     import AcUnitOutlinedIcon from '@mui/icons-material/AcUnitOutlined';
-    import axios from 'axios';
+    // import axios from 'axios';
+    import {fetchContactList} from '../../../api'
+    import { GlobalContext } from '../../ContextApi/GlobalContext';
     
+
     function AddContacts() { 
         const [newEmails, setNewEmails] = useState([]);
-        // const location = useLocation(); 
-        // const listsDataId = location.state.id;
-    
+        
+        const { userId } = useContext(GlobalContext);
+
+
+
         useEffect( () => {
-            const fetchContactsList = async () =>{
+            const fetchContactssList = async () =>{
                 try{
-                        const response = await axios.get('http://localhost:3001/api/getContactList');
-                        console.log(response.data.result)
+                        // const response = await axios.get(`https://crmapi.namekart.com/api/getContactList/${userId}`);
+                        // console.log(response.data.result)
+                        const response = await fetchContactList(userId)
                         setNewEmails(response.data.result)
 
                 }catch(err){
                     console.log('Error in fetching Contacts', err)
                 }
             }
-            fetchContactsList();
+            fetchContactssList();
         }, []); 
 
-
+   
         const headerStyle = {
             '& .MuiDataGrid-columnHeaderTitle': {
                 fontWeight: '650',
@@ -52,7 +58,8 @@
             Contact:emailObj.emails,
             status: ''
         }));
-                
+
+        
     return (
         <div className='addContacts'>
             <div className='addcont-container'>
@@ -60,7 +67,11 @@
                     <div className='addcont-left'>  
                         <Link to='createContacts' className='addcont-items'>Add Contacts</Link>
                         <div className='addcont-items'>View metrics</div>
-                        <div className='addcont-items'>Filters</div>
+                        <div className='addcont-items'>
+                            Filters
+                            
+
+                        </div>
                     </div>                        
                     
                     <div className='addcont-right'>

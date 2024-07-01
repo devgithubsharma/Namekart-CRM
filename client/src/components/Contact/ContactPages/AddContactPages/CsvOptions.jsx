@@ -5,7 +5,9 @@ import TabContext from '@material-ui/lab/TabContext';
 import TabList from '@material-ui/lab/TabList';
 import TabPanel from '@material-ui/lab/TabPanel'; 
 import { makeStyles } from '@material-ui/core/styles';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Papa from 'papaparse';
+import Button from '@mui/material/Button';
 
 
 const useStyles = makeStyles({
@@ -23,13 +25,42 @@ const useStyles = makeStyles({
     '& .MuiTabs-indicator': {
       display: 'none',
     },
-  }
+  },
+  uploadContainer: {
+    border: '2px dashed #000',
+    padding: '20px',
+    textAlign: 'center',
+    borderRadius: '10px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    height: '300px',
+    '&:hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    },
+  },
+  uploadIcon: {
+    fontSize: '48px',
+    marginBottom: '10px',
+  },
+  uploadButton: {
+    marginTop: '10px',
+  },
+  tabPanel: {
+    marginTop: '40px', // Adjust this value to increase/decrease the vertical distance
+  },
+  uploadText: {
+    marginBottom: '20px', // Adjust this value to increase/decrease the margin between texts
+    fontSize: '20px',
+  },
 });
 
 
 function CsvOptions({ setCsvData }) {
     const [activeTab, setActiveTab] = useState('upload');
-    const [showFileInput, setShowFileInput] = useState(false);
+    const [showFileInput, setShowFileInput] = useState(true);
     const fileInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
     const [value, setValue] = useState('1');
@@ -138,28 +169,25 @@ function CsvOptions({ setCsvData }) {
               </TabList>
 
               <TabPanel value='1'>
-              <div className='csv-select-button-container'>
-              {showFileInput && (
-                <>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    id="file-upload"
-                    onChange={handleFileChange}
-                    accept=".csv"
-                    style={{ display: 'none' }}
-                  />
-
-                  <label
-                    htmlFor="file-upload"
-                    className="custom-file-upload"
-                    onClick={handleFileButtonClick}
-                  >
-                    Select CSV
-                  </label>
-                </>
-              )}
-            </div>
+              {showFileInput ? (
+              <div className={classes.uploadContainer} onClick={handleFileButtonClick}>
+                <CloudUploadIcon className={classes.uploadIcon} />
+                <div className={classes.uploadText}>Upload CSV File</div>
+                <div style={{ fontSize: '20px' }}>Supported files: CSV</div>
+                <input
+                  ref={fileInputRef}
+                  type='file'
+                  id='file-upload'
+                  onChange={handleFileChange}
+                  accept='.csv'
+                  style={{ display: 'none' }}
+                />
+              </div>
+            ) : (
+              <div>
+                
+              </div>
+            )}
           </TabPanel>
 
           <TabPanel value='2'>

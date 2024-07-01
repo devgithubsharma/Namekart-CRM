@@ -11,16 +11,18 @@ const getSequenceNames = async (req,res) =>{
             if(err){
                 console.log('Error in getSequenceNames query', err)
             }else{
-                connection.release();
+                
                 res.json({result});
             }
         })
     }catch(err){
         console.log('Error in getSequenceNames',err)
+       
+        res.status(500).send('Error in getSequenceNames')
+    }finally{
         if(connection){
             connection.release();
         }
-        res.status(500).send('Error in getSequenceNames')
     }
 }
 

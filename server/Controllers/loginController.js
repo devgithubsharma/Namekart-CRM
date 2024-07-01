@@ -5,12 +5,15 @@ const jwt = require('jsonwebtoken');
 const login = async (req,res) => {
     const loginIdentifier = req.body.login; // Can be either username or email
     const password = req.body.password;
-
+    console.log("loginIdentifier",loginIdentifier)
+    let connection;
     try{
-        const connection = await dbConnection.getConnection();
+        // console.log("loginIdentifier",loginIdentifier)
+        connection = await dbConnection.getConnection();
+        console.log("Connection",connection)
 
-        const query = 'SELECT * FROM users WHERE user_name = ? OR user_email = ?';
-        connection.query(query, [loginIdentifier, loginIdentifier], async (err,result)=>{
+        const query = 'SELECT * FROM users_crm WHERE user_email = ?';
+        connection.query(query, [loginIdentifier], async (err,result)=>{
             if(err){
                 console.log('Error in login query', err)
             }else if(result.length>0){
@@ -23,9 +26,15 @@ const login = async (req,res) => {
             }else{
                 res.status(401).send('Invalid credentials');
             }
-        })
+        });
+
     }catch(err){
+        console.log("Error in Login",err)
         res.status(500).send('Error logging user');
+    }finally{
+        if(connection){
+            connection.release();
+        }
     }
 }
 

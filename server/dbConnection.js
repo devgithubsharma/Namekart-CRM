@@ -1,11 +1,11 @@
 const mysql = require('mysql');
 
 const dbConfig = {
-    host: '127.0.0.1',
+    host: '127.0.0.1', //'host.docker.internal',//'127.0.0.1',
     port:3306,
-    user: 'Yash',
-    password: 'Wupv1674@',
-    database: 'crm_collections',
+    user: 'axsiom_ahadmin',//'Yash',//axsiom_ahadmin
+    password: 'parlor-flier-polish',//'Wupv1674@',//parlor-flier-polish
+    database: "axsiom_auctionhacker1",//'crm_collections', //axsiom_auctionhacker1
     connectionLimit: 1000
   };
 

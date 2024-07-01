@@ -1,16 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { TextField, Button, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Typography } from '@mui/material';
+import React, { useEffect, useState,useContext } from 'react';
+import { TextField, Button, Table, TableBody, TableContainer, TableCell, TableHead, TableRow, IconButton, Typography, Paper } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
+import { GlobalContext } from '../ContextApi/GlobalContext';
+import {saveSenderEmails} from '../../api'
+import {deleteEmail} from '../../api'
+import {fetchSenderEmailsDetails} from '../../api'
+import {fetchTag} from '../../api'
 
 function SendersEmails() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('')
   const [emails, setEmails] = useState([]);
   const [accessTokenInput, setAccessTokenInput] = useState('');
+  const [refreshTokenInput, setRefreshTokenInput] = useState(''); 
   const [tokens, setTokens] = useState({});
+  
   const [isHovered1, setIsHovered1] = useState(false); 
   const [isHovered2, setIsHovered2] = useState(false); 
+  const { userId } = useContext(GlobalContext);
+  
 
   const handleMouseEnter1 = () => {
     setIsHovered1(true);
@@ -28,28 +37,42 @@ function SendersEmails() {
     setIsHovered2(false);
   };
 
+  
 
+  console.log("userId",userId)
   const handleAddDetails = async () => {
-    if (email && name && accessTokenInput && !emails.find(e => e.email === email)) {
+    if (email && name && accessTokenInput && refreshTokenInput && !emails.find(e => e.email === email)) {
       try {
-        const response = await axios.post('http://localhost:3001/api/addEmails', {
-          email: email, 
-          name: name,
-          accessToken: accessTokenInput, 
-        });
-        // Assuming response.data includes the new sender_id
+        // const response = await axios.post('https://crmapi.namekart.com/api/addEmails', {
+        //   email: email, 
+        //   name: name,
+        //   accessToken: accessTokenInput, 
+        //   refreshToken: refreshTokenInput, 
+        //   userId:userId
+        // });
+        const response = await saveSenderEmails(email,name,accessTokenInput,refreshTokenInput,userId)
+        
         const newEmail = {
           id: response.data.sender_id,
           email: email,
           name: name,
           accessToken: accessTokenInput,
+          refreshToken: refreshTokenInput, 
+          
         };
         
         setEmails([...emails, newEmail]);
-        setTokens({ ...tokens, [newEmail.id]: accessTokenInput });
-        setEmail(''); // Clear the email input
+        setTokens({
+          ...tokens,
+          [newEmail.id]: {
+            accessToken: accessTokenInput,
+            refreshToken: refreshTokenInput
+          }
+        });
+        setEmail(''); 
         setName('');
-        setAccessTokenInput(''); // Clear the access token input
+        setAccessTokenInput(''); 
+        setRefreshTokenInput('');
 
       } catch (error) {
         console.error('Failed to save email and access token:', error);
@@ -60,11 +83,10 @@ function SendersEmails() {
   };
   
 
+
   const handleDeleteEmail = (emailToDelete) => {
-    axios.delete(`http://localhost:3001/api/deleteEmail/${emailToDelete}`)
+    deleteEmail(emailToDelete)
     .then(response => {
-        // If the delete operation was successful in the backend, update the UI
-        // Filter out the deleted email from the emails state
         const updatedEmails = emails.filter(e => e.id !== emailToDelete);
         setEmails(updatedEmails);
 
@@ -81,9 +103,9 @@ function SendersEmails() {
   };
 
 
-  const handleTokenChange = (emailId, token) => {
-    setTokens({ ...tokens, [emailId]: token });
-  };
+  // const handleTokenChange = (emailId, token) => {
+  //   setTokens({ ...tokens, [emailId]: token });
+  // };
 
 
   useEffect(()=>{
@@ -95,18 +117,19 @@ function SendersEmails() {
   },[tokens])
 
   useEffect(() => {
-    const fetchEmails = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await axios.get('http://localhost:3001/api/getSenderEmailsDetails');
-        // Filter out any entries without an email or ID
-        
-        const validEmails = data.result.filter(email => email.sender_email_id && email.sender_id);
+        // const { data } = await axios.get(`https://crmapi.namekart.com/api/getSenderEmailsDetails/${userId}`);
+        const response = await fetchSenderEmailsDetails(userId)
+        console.log("data",response)
+        const validEmails = response.data.result.filter(email => email.sender_email_id && email.sender_id);
         console.log(validEmails)
-        setEmails(validEmails.map(email => ({
-          id: email.sender_id, // Use sender_id as the unique identifier
-          email: email.sender_email_id, // Assuming this is the email address
-          name: email.sender_name || '',
-          accessToken: email.refreshToken || '' // Use refreshToken as the token
+        setEmails(validEmails.map(response => ({
+          id: response.sender_id, 
+          email: response.sender_email_id,
+          name: response.sender_name || '',
+          accessToken: response.accessToken || '' ,
+          refreshToken: response.refreshToken || '' 
         })));
   
         // Initialize tokens state
@@ -120,7 +143,7 @@ function SendersEmails() {
         console.error('Error in fetching sender emails:', error);
       }
     };
-    fetchEmails();
+    fetchData();
   }, []);
   
 
@@ -128,7 +151,7 @@ function SendersEmails() {
   return (
     <div style={{ margin: '20px' }}>
       <Typography variant="h4" component="h1" style={{ marginBottom: '20px' }}>
-          Sender's Emails Management
+          Sender Emails Management
       </Typography>
 
       <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
@@ -156,38 +179,51 @@ function SendersEmails() {
           style={{ marginRight: '10px', flex: 1, maxWidth:'250px' }}
         />
 
+        <TextField // New TextField for Refresh Token
+          label="Refresh Token"
+          variant="outlined"
+          value={refreshTokenInput}
+          onChange={(e) => setRefreshTokenInput(e.target.value)}
+          style={{ marginRight: '10px', flex: 1, maxWidth: '200px' }}
+        />
+
           <Button variant="contained" color="primary" onClick={handleAddDetails} onMouseEnter={handleMouseEnter1}
         onMouseLeave={handleMouseLeave1} style={{ height: '40px' ,maxWidth:'150px',borderRadius:'15px', backgroundColor: isHovered1 ? 'grey' : 'black',color:'white'}}> 
             Add Details
           </Button>
       </div>
 
-        <Table>
+      <TableContainer component={Paper}>
+        <Table size="small" aria-label="a dense table">
           <TableHead style={{ backgroundColor: '#1976d2' }}>
             <TableRow>
-              <TableCell style={{ fontWeight:'600', fontStyle:'sans-serif' }}>Email</TableCell>
-              <TableCell style={{ fontWeight:'600', fontStyle:'sans-serif' }}>Name</TableCell> 
-              <TableCell style={{ fontWeight:'600', fontStyle:'sans-serif' }}>Access Token</TableCell>
-              <TableCell style={{ fontWeight:'600', fontStyle:'sans-serif' }}>Actions</TableCell>
+              <TableCell style={{ fontWeight: '600', width: '20%' }}>Email</TableCell>
+              <TableCell style={{ fontWeight: '600', width: '20%' }}>Name</TableCell>
+              <TableCell style={{ fontWeight: '600', width: '20%' }}>Access Token</TableCell>
+              <TableCell style={{ fontWeight: '600', width: '20%' }}>Refresh Token</TableCell>
+              <TableCell style={{ fontWeight: '600', width: '20%' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-          {emails.map((item) => (
-                item.email && ( 
+            {emails.map((item) => (
+              item.email && (
                 <TableRow key={item.id}>
-                    <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{tokens[item.id] }</TableCell>
-                    <TableCell>
+                  <TableCell style={{ width: '20%' }}>{item.email}</TableCell>
+                  <TableCell style={{ width: '20%' }}>{item.name}</TableCell>
+                  <TableCell style={{ width: '20%' }}>{item.accessToken}</TableCell>
+                  <TableCell style={{ width: '20%' }}>{item.refreshToken}</TableCell>
+                  <TableCell style={{ width: '20%' }}>
                     <IconButton onClick={() => handleDeleteEmail(item.id)}>
-                        <DeleteIcon />
+                      <DeleteIcon />
                     </IconButton>
-                    </TableCell>
+                  </TableCell>
                 </TableRow>
-    )
-  ))}
+              )
+            ))}
           </TableBody>
         </Table>
+      </TableContainer>
+        
     </div>
   );
 }

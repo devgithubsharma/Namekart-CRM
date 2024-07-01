@@ -1,5 +1,5 @@
 // Navbar.js
-import React from 'react';
+import React, { useContext }  from 'react';
 import { Box, Button, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem,Popper,Paper, ClickAwayListener,Grow, Stack, Toolbar, Tooltip, MenuList } from '@mui/material';
 import { useDrag, useDrop } from 'react-dnd';
 import {updateEmailCategory } from '../services/updateEmailCategory '
@@ -27,6 +27,8 @@ import { styled } from '@mui/material/styles';
 import { Outlet, useNavigate } from 'react-router';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
+import { GlobalContext } from './ContextApi/GlobalContext'; // Import GlobalContext
+import ExitToAppOutlinedIcon from '@mui/icons-material/ExitToAppOutlined';
 // import { makeStyles } from '@mui/styles';
  
 // const ROW_TYPE = 'ROW';
@@ -53,24 +55,23 @@ import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
 // };
 
 function Home() {
-  // const [anchorEl, setAnchorEl] = useState(null);
-  // const [selectedCategory, setSelectedCategory] = useState('');
-  // const categories = ['Declined', 'PQ', 'Negotiation', 'Closed'];
+  
   const [open, setOpen] = React.useState(true);
-  // const [anchorEl, setAnchorEl] = React.useState(null);
   const [openPopper, setOpenPopper] = React.useState(false);
-  // const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [nestedOpen1, setNestedOpen1] = React.useState(false);
   const [emailMenuAnchorEl, setEmailMenuAnchorEl] = React.useState(null);
-  // const opens = Boolean(anchorEl);
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useContext(GlobalContext); // Use GlobalContext
   // const handleClick = (event) => {
   //   setAnchorEl(event.currentTarget);
   // };
   // const handleClose = () => {
   //   setAnchorEl(null);
   // };
-
+  const handleLogout = () => {
+    logout(); // Call the logout function from context
+    navigate('/login'); // Redirect to login page
+  };
 
   const handleDrawerToggle = (open) => (event) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -80,18 +81,10 @@ function Home() {
   };
 
   const handleEmailMenuClick = (event) => {
-    navigate('/userEmails')
+    navigate('/home/userEmails')
   };
 
-  // Function to close the email menu
-  // const handleEmailMenuClose = () => {
-  //   setOpenPopper(false);
-  // };
-
-  // const handleMenuItemClick = (path) => {
-  //   handleEmailMenuClose(); // Close the menu
-  //   navigate(path); // Navigate to the path
-  // };
+  
 
   const toggleNestedMenu1 = () => {
     if(!open)
@@ -223,12 +216,25 @@ function Home() {
           edge="start"
           aria-label="email-menu"
           aria-haspopup="true"
-          sx={{ mr: 1, color:"#6174D7" }}
+          sx={{ mr: 0.1, color:"#6174D7" }}
           onClick={handleEmailMenuClick}
           ><EmailOutlinedIcon sx={{width:30, height:30, color:'white'}}/>
           </IconButton>
           </Tooltip>
           
+          {isAuthenticated && (
+                <Tooltip title="Logout">
+                  <IconButton
+                    size='large'
+                    edge="end"
+                    aria-label="logout"
+                    onClick={handleLogout}
+                    sx={{ color: "#6174D7" }}
+                  >
+                    <ExitToAppOutlinedIcon sx={{ width: 30, height: 30, color: 'white' }} />
+                  </IconButton>
+                </Tooltip>
+              )}
           
           </Toolbar>
           </AppBar>
@@ -246,16 +252,16 @@ function Home() {
     </DrawerHeader>
      <List sx={{width: '100%', color: '#CAC4D0', fontSize: 14, fontFamily: 'sans-serif', fontWeight: '500', lineHeight: 20, letterSpacing: 0.10, wordWrap: 'break-word'}}>
 
-        <ListItem button onClick={()=>navigate("/")}>
+        {/* <ListItem button onClick={()=>navigate("/")}>
           <ListItemIcon  sx={{color:'#cac4d0'}}>
             <DashboardOutlinedIcon />
           </ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItem>
 
-        <Divider sx={{ backgroundColor:'#49454F'}} variant='middle'/>
+        <Divider sx={{ backgroundColor:'#49454F'}} variant='middle'/> */}
 
-        <ListItem button onClick={()=>navigate("/contacts")}>
+        <ListItem button onClick={()=>navigate("/home/contacts")}>
           <ListItemIcon sx={{color:'#cac4d0'}}>
             <ContactsIcon />
           </ListItemIcon>
@@ -264,7 +270,7 @@ function Home() {
 
         <Divider sx={{ backgroundColor:'#49454F'}} variant='middle'/>
 
-        <ListItem button onClick={()=>navigate("/manualCampaigns")}>
+        <ListItem button onClick={()=>navigate("/home/manualCampaigns")}>
           <ListItemIcon sx={{color:'#cac4d0'}}>
             <CampaignIcon />
           </ListItemIcon>
@@ -273,7 +279,7 @@ function Home() {
 
         <Divider sx={{ backgroundColor:'#49454F'}} variant='middle'/>
 
-        <ListItem button onClick={()=>navigate("/chattingMessages")}>
+        <ListItem button onClick={()=>navigate("/home/chattingMessages")}>
           <ListItemIcon sx={{color:'#cac4d0'}}>
             <MessageIcon />
           </ListItemIcon>
@@ -283,11 +289,11 @@ function Home() {
         <Divider sx={{ backgroundColor:'#49454F'}} variant='middle'/>
 
 
-        <ListItem button onClick={()=>navigate("/campaignStatus")}>
+        <ListItem button onClick={()=>navigate("/home/campaignStatus")}>
           <ListItemIcon sx={{color:'#cac4d0'}}>
             <PauseCircleOutlineIcon />
           </ListItemIcon>
-          <ListItemText primary="Status" />
+          <ListItemText primary="Stats" />
         </ListItem>
 
         <Divider sx={{ backgroundColor:'#49454F'}} variant='middle'/>
@@ -329,12 +335,23 @@ function Home() {
           </ListItem>
         </List>}
 
-        <ListItem button>
+        {/* <ListItem button>
           <ListItemIcon sx={{color:'#cac4d0'}}>
             <SettingsSuggestOutlinedIcon />
           </ListItemIcon>
           <ListItemText primary="Settings" />
-        </ListItem>
+        </ListItem> */}
+
+{/* <Divider sx={{ backgroundColor:'#49454F'}} variant='middle'/>
+
+{isAuthenticated && (
+              <ListItem button onClick={handleLogout}>
+                <ListItemIcon sx={{color:'#cac4d0'}}>
+                  <ExitToAppOutlinedIcon/>
+                </ListItemIcon>
+                <ListItemText primary="Logout" />
+              </ListItem>
+            )} */}
 
      </List>
      </Drawer>

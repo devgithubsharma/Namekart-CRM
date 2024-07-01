@@ -16,15 +16,16 @@ async function updateBouncedMails(messageId) {
                     resolve(results); 
                 }
         });
-    }).finally(() => {
-        // Release the connection back to the pool
-        connection.release();
-    });
+    })
     }catch(err){
         console.error('Failed to get database connection:', err);
         if (connection) connection.release();
         throw err; // Re-throw the error after releasing the connection
 
+    }finally{
+        if(connection){
+            connection.release();
+        }
     }
    
 }

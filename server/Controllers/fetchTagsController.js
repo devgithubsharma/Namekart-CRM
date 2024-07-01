@@ -1,27 +1,30 @@
 const dbConnection = require('../dbConnection');
 
 const fetchTags = async (req,res) =>{
+    const userId = req.params.userId
     let connection;
     try {
         connection = await dbConnection.getConnection();
-        const query = "SELECT title_id, tags FROM tagsdata";
+        const query = "SELECT title_id, tags FROM tagsdata where userId=?";
 
-        await connection.query(query, (err,result)=>{
+        await connection.query(query,[userId], (err,result)=>{
             
             if(err){
                 console.log(err)
                 res.status(500).json({error: 'Internal Server Error'})
             }else{
-                connection.release();
+                
                 const tags = result.map(row => ({ title_id: row.title_id, tag: row.tags }));
                 res.status(201).json({result})
             }
         })
     } catch (error) {
+        
+        res.status(500).send("Error fetching tags");
+    }finally{
         if(connection){
             connection.release();
         }
-        res.status(500).send("Error fetching tags");
     }
 }
 

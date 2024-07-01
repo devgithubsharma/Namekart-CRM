@@ -12,16 +12,17 @@ const getSequenceDetails = async (req,res) =>{
             if(err){
                 console.error('Error fetching sequence details:', err);
             }else{
-                connection.release();
+                
                 res.json({result})
             }
         })
     }catch(err){
             console.log(err)
-            if(connection){
-                connection.release();
-            }
             res.status(500).send('Error in getting sequence details')
+    }finally{
+        if(connection){
+            connection.release();
+        }
     }
 }
 

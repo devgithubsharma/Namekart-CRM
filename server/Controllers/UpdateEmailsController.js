@@ -3,10 +3,10 @@ const dbConnection = require('../dbConnection');
 const updateEmails = async (req,res) =>{
     const emailId = req.body.emailId
     const token = req.body.accessToken
-
+    let connection
     try{
         console.log('updateEmails')
-        const connection = await dbConnection.getConnection();
+        connection = await dbConnection.getConnection();
         const query = 'UPDATE sendertable SET refreshToken = ? WHERE sender_id = ?';
 
         connection.query(query, [token, emailId], (err, result) => {
@@ -18,6 +18,10 @@ const updateEmails = async (req,res) =>{
     }catch(err){
         console.log(err)
         res.status(500).send("Error during the Update emails process.");
+    }finally{
+        if(connection){
+            connection.release();
+        }
     }
 }
 

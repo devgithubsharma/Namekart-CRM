@@ -1,9 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router';
 import { Modal, Box, Typography, TextField, Chip, MenuItem, FormControl ,Select, Button, InputLabel,TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper } from '@mui/material';
 import axios from 'axios';
 import Papa from 'papaparse';
 import { updateCampaignStatus } from '../IndexedDB/CampaignStatusIdb';
+import { GlobalContext } from '../ContextApi/GlobalContext';
+import {fetchSenderEmails} from '../../api'
+import {fetchSenderNamesForQuickCamp} from '../../api'
+import {fetchSequenceDetails} from '../../api'
+import {saveTitle} from '../../api'
+import {uploadContacts} from '../../api'
+import {startCampaigns} from '../../api'
+import {deleteTag} from '../../api'
+import {saveTags} from '../../api'
+import {fetchTag} from '../../api'
+import {saveCampaign} from '../../api'
+import {fetchListData} from '../../api'
 // import { fetchCampaignStatus } from '../IndexedDB/CampaignStatusIdb';
 
 
@@ -41,12 +53,15 @@ function QuickCampaignModal({isOpen, onClose}){
   const [selectedSequence, setSelectedSequence] = useState('');
   const [receiverName, setReceiverName] = useState([]);
   const [leads,setLeads] = useState([]);
+  const [temporaryTag, setTemporaryTag] = useState('');
 //   const [isCampaignRunning, setIsCampaignRunning] = useState(false);
   const [isFirstEmail, setIsFirstEmail] = useState(true);
   const [campId, setCampId] = useState(null);
   const [domainLink,setDomainLink] = useState([]);
   const navigate = useNavigate();
+  const { userId } = useContext(GlobalContext);
 
+  console.log("userId",userId)
 
   useEffect(() => {
     if (isOpen) {
@@ -65,23 +80,25 @@ function QuickCampaignModal({isOpen, onClose}){
 
 
   useEffect(() =>{
-    const fetchSenderEmails = async () =>{
+    const fetchSendersEmails = async () =>{
       try{
-        const response = await axios.get('http://localhost:3001/api/getSenderEmails')
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getSenderEmails/${userId}`)
+        const response = await fetchSenderEmails(userId)
         console.log(response)
         setSenderEmails(response.data.result)
       }catch(err){
         console.error('Error in fetching senders emails:', err);
       }
     }
-    fetchSenderEmails();
+    fetchSendersEmails();
   },[isOpen])
 
   
   useEffect(() =>{
     const fetchSenderNames = async () =>{
       try{
-        const response = await axios.get('http://localhost:3001/api/getSenderNames')
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getSenderNamesForQuickCampaign/${userId}`)
+        const response = await fetchSenderNamesForQuickCamp(userId)
         console.log(response)
         setSenderNames(response.data.result)
       }catch(err){
@@ -99,9 +116,10 @@ function QuickCampaignModal({isOpen, onClose}){
 
 
   useEffect(() => {
-    const fetchSequenceDetails = async () => {
+    const fetchSequencesDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/seqDetails`);
+        // const response = await axios.get(`https://crmapi.namekart.com/api/seqDetails`);
+        const response = await fetchSequenceDetails()
         console.log(response)
         const fetchedData = response.data.result; 
   
@@ -152,7 +170,7 @@ function QuickCampaignModal({isOpen, onClose}){
       } catch (error) {
         console.error('Error fetching sequence details:', error);
       }}
-    fetchSequenceDetails();
+    fetchSequencesDetails();
   }, [isOpen]); 
 
 
@@ -170,7 +188,8 @@ function QuickCampaignModal({isOpen, onClose}){
   const handleContinue1 = async () => {
     try{
       console.log('Creating a new list with title:', listTitle);
-      const response = await axios.post('http://localhost:3001/api/createTitle', { title: listTitle, });
+      // const response = await axios.post('https://crmapi.namekart.com/api/createTitle', { title: listTitle,userId:userId });
+      const response = await saveTitle(listTitle,userId)
       console.log(response)
       setTitleId(response.data.title.title_id)
     }catch(err){  
@@ -186,13 +205,15 @@ function QuickCampaignModal({isOpen, onClose}){
         }).catch((error) => {
             console.error('Error during API call:', error);
           });
-        
+
+
     }else if(step===3){
         handleUploadContacts().then(()=>{
             setStep((currentStep) => currentStep + 1);
         }).catch((err) =>{
             console.error('Error during API call:', err);
         })
+
 
     }else if(step===4){
         handleCampaignData().then(()=>{
@@ -216,11 +237,13 @@ function QuickCampaignModal({isOpen, onClose}){
 
   const handleUploadContacts = async () => {
     try {  
-      const uploadResponse = await axios.post('http://localhost:3001/api/listsData/uploadContacts',{
-        titleId: titleId,
-        csvColumns: csvData.data[0],     
-        csvValues: csvData.data,   
-      });
+      // const uploadResponse = await axios.post('https://crmapi.namekart.com/api/listsData/uploadContacts',{
+      //   titleId: titleId,
+      //   userId: userId,
+      //   csvColumns: csvData.data[0],     
+      //   csvValues: csvData.data,   
+      // });
+      const uploadResponse = await uploadContacts(titleId,userId,csvData.data,temporaryTag)
       console.log('Upload Contacts response', uploadResponse);
       
     } catch (err) {
@@ -256,15 +279,18 @@ function QuickCampaignModal({isOpen, onClose}){
           domains:domainNames,
           campId: campId,
           stepCount:i+1,
-          domainLinks: domainLink
+          domainLinks: domainLink,
+          userId:userId,
+          campRunningType:"quickCampaign"
         };
 
         onClose(); 
-        navigate('/campaigns', { replace: true });
-        const response = await axios.post('http://localhost:3001/api/startCampaign', campaignData);
+        navigate('/home/manualCampaigns', { replace: true });
+        // const response = await axios.post('https://crmapi.namekart.com/api/startCampaign', campaignData);
+        const response = await startCampaigns(campaignData)
         setIsFirstEmail(false)
         console.log("Response:", response);  
-        cumulativeDelay = step.delay * 60 * 1000; 
+        cumulativeDelay = step.delay;
       }
       
       updateCampaignStatus(campId, "completed");
@@ -303,13 +329,15 @@ function QuickCampaignModal({isOpen, onClose}){
 
 const handleTagInputChange = (event) => {
     setTagInput(event.target.value);
+    setTemporaryTag(event.target.value)
   };
 
 
 
   const handleDeleteTag = (tagIdToDelete) => {
     setTags((prevTags) => prevTags.filter((tagObj) => tagObj.id !== tagIdToDelete));
-    axios.delete(`http://localhost:3001/api/deleteTag/${tagIdToDelete}`)
+    // axios.delete(`https://crmapi.namekart.com/api/deleteTag/${tagIdToDelete}`)
+    deleteTag(tagIdToDelete)
     .then(response => {
         console.log('Email deleted:', response.data);
     })                
@@ -322,13 +350,26 @@ const handleTagInputChange = (event) => {
   const handleAddTag = async () => {
     try{
         if (tagInput && !tags.includes(tagInput) && tags.length < 3) {
-            const response = await axios.post('http://localhost:3001/api/lists/addTag', {
-                titleId: titleId,
-                tag: tagInput,
-            });  
-            const newTags = { id: response.data.tagIds, tag: tagInput };
-            setTags([...tags, newTags]);
-            setTagInput('');
+            // const response = await axios.post('https://crmapi.namekart.com/api/lists/addTag', {
+            //     titleId: titleId,
+            //     tag: tagInput,
+            //     userId:userId
+            // }); 
+            
+            const response = await saveTags(titleId,tagInput,userId);
+            console.log("response - ",response);
+            if(response.data.message!=="Tag already exist"){
+              console.log('Tag Id', response.data);
+              const newTags = { id: response.data.tagIds, tag: tagInput };
+              setTags([...tags,newTags]);
+              setTagInput('');  
+            }else{
+              const newTags = { tag: tagInput };
+              setTags([...tags,newTags]);
+              setTagInput(''); 
+            }
+
+
           }
     }catch(err){
         console.error('Error adding tag:', err.message); 
@@ -340,7 +381,8 @@ const handleTagInputChange = (event) => {
     const fetchTags = async () => {
       console.log('Fetch tags called')   
       try {
-        const response = await axios.get('http://localhost:3001/api/fetchTags'); 
+        // const response = await axios.get(`https://crmapi.namekart.com/api/fetchTags/${userId}`); 
+        const response = await fetchTag(userId)
         setFetchedTags(response.data.result);   
       } catch (error) {  
         console.error('Error fetching tags:', error); 
@@ -357,8 +399,9 @@ const handleTagInputChange = (event) => {
 
   const handleCampaignData = async () => {
     try{
-        const response = await axios.post('http://localhost:3001/api/campaignsData',{ campaignName, tagName: selectedTag.tags,
-        titleId : selectedTag.title_id })
+        // const response = await axios.post('https://crmapi.namekart.com/api/campaignsData',{ campaignName, tagName: selectedTag.tags,
+        // titleId : selectedTag.title_id, userId:userId})
+        const response = await saveCampaign(campaignName,selectedTag.tags,selectedTag.title_id,userId)
         console.log(response.data.camp_id)
         setCampId(response.data.camp_id)
     }catch(err){
@@ -371,7 +414,8 @@ const handleTagInputChange = (event) => {
     console.log(selectedTag)
     if (selectedTag && selectedTag.title_id) {
       try {
-        const response = await axios.get(`http://localhost:3001/api/getEmailsByListId/${selectedTag.title_id}`);
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getEmailsByListId/${selectedTag.title_id}/${userId}`);
+        const response = await fetchListData(selectedTag.title_id,userId)
         console.log(response)
         setReceiverEmails(response.data.emails); 
         setDomainNames(response.data.domains)
@@ -397,12 +441,7 @@ const handleTagInputChange = (event) => {
     }
   };
 
-//   const handleSelectTag = () => {
-//     if (selectedTag) {
-//       fetchEmailsByTag(selectedTag);
-//     }
-//   };
-
+//  
   const handleTagChange = (e) => {
     const selectedValue = e.target.value;
     const selectedTagObject = fetchedTags.find(tag => tag.tags === selectedValue) || {};

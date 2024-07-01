@@ -15,14 +15,17 @@ const getSenderEmailsAndMessageIds = async (req,res) =>{
             }else{
                 const plainResult = JSON.parse(JSON.stringify(result));
                 console.log('plainResult',plainResult)
-                connection.release();
                 res.json(plainResult);
             }
         });
     }catch(err){
         console.error('Error in getSenderEmailsAndMessageIds', err);
-        connection.release();
+        
         res.status(500).send({ error: 'Internal Server Error' });
+    }finally{
+        if(connection){
+            connection.release();
+        }
     }
 }
 

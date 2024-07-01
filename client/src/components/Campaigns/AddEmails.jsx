@@ -12,7 +12,7 @@ function AddEmails() {
 
     const handleAddEmail = () => {
         if (emailInput && isValidEmail(emailInput)) { 
-        axios.post('http://localhost:3001/api/addEmails', { email: emailInput })
+        axios.post('https://crmapi.namekart.com/api/addEmails', { email: emailInput })
         .then(response => {
             console.log('Email saved:', response.data);
 
@@ -35,7 +35,7 @@ function AddEmails() {
 
     const handleDeleteEmail = (emailToDelete) => () => {
         setEmails((emails) => emails.filter((emailObj) => emailObj.id !== emailToDelete));
-        axios.delete(`http://localhost:3001/api/deleteEmail/${emailToDelete}`)
+        axios.delete(`https://crmapi.namekart.com/api/deleteEmail/${emailToDelete}`)
         .then(response => {
             console.log('Email deleted:', response.data);
         })                

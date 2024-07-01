@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,300&display=swap');
+
 .addcont-container{
     font-family: 'Nunito Sans', sans-serif;
     display: flex;
@@ -54,3 +55,20 @@
     align-items: center;
     margin-left: 320px;
   }
+
+  .addcont-items .MuiIconButton-root {
+    color: inherit; /* Inherits the color from .addcont-items */
+    padding: 8px; /* Adjust padding as needed */
+    margin-left: 5px; /* Space between text and icon */
+}
+
+/* Style adjustments for the dropdown menu */
+.MuiMenu-paper {
+    border: 1px solid #ccc; /* Adds a subtle border */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Soft shadow for dropdown */
+}
+
+/* Ensure the dropdown is not hidden by overflow settings */
+.addcont-container, .addcont {
+    overflow: visible; /* Allows dropdown to appear outside the container */
+}

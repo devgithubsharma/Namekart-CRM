@@ -6,8 +6,9 @@ app.use(cors());
 const dbConnection = require('./dbConnection');
 const {google} = require('googleapis');
 const cron = require('node-cron'); 
+// const connection = dbConnection.getConnection();
 
-const port = 3001;
+const port = 90; //3001 / 90
 
 const { organizedEmailController } = require('./Controllers/receivingEmailsControllers.js');
 const {createList} = require('./Controllers/listsController.js')
@@ -58,7 +59,15 @@ const {getIndexData} = require("./Controllers/getIndexDataControllers.js")
 const {getCampIdUsingEmailKeyId} = require('./Controllers/getCampIdUsingEmailKeyIdControllers.js')
 const {getChatData} = require('./Controllers/getChatDataControllers.js')
 const {getInboxData} = require('./Controllers/getInboxDataControllers.js')
-
+const {sendMessage} = require('./Controllers/sendOneToOneEmailsMessagesControllers.js')
+const {getSenderNamesForQuickCampaign} = require('./Controllers/getSenderNamesForQuickCampaignControllers.js')
+const {deleteStep} = require('./Controllers/deleteStepControllers.js')
+const {getUpdatedSequence} = require('./Controllers/getUpdatedSequenceControllers.js')
+const {tempApi} = require('./Controllers/tempApiCheckControllers.js')
+const {uploadContactsFromDashboard} = require('./Controllers/directUploadAndRunCampaignControllers.js')
+const {fetchContactsForTags} = require('./Controllers/fetchContactsForTagsControllers.js')
+const {getSenderEmailsForCampId} = require('./Controllers/getSenderEmailsForCampIdControllers.js')
+const {sendBulkEmails} = require('./Controllers/testingGmailApiControllers.js')
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
@@ -66,44 +75,53 @@ app.use(express.json());
 app.post('/api/register',signUp);
 app.post('/api/login',login);
 app.post('/api/createTitle', createList);
-app.get('/api/fetchTags',fetchTags);
+app.get('/api/fetchTags/:userId',fetchTags);
 app.post('/api/lists/addTag',addTag);
 app.post('/api/campaignsData',campaignsData);
 app.post('/api/listsData/uploadContacts',uploadContacts);
 app.get('/api/listsData/getEmails',getEmails);
 app.get('/api/receivingEmails', organizedEmailController);
-app.get("/api/getEmailsByListId/:titleId",getEmailsById);
-app.get('/api/getCampaignsData',getCampaignData);
+app.get("/api/getEmailsByListId/:titleId/:userId",getEmailsById);
+app.get('/api/getCampaignsData/:userId',getCampaignData);
 app.delete('/api/deleteCampaign',deleteCampaign);
 app.post('/api/addEmails',addEmails);
 app.delete('/api/deleteEmail/:emailToDelete',deleteEmails);
-app.get('/api/getContactList',getContactsLists);
-app.get('/api/getSenderEmails',getSendersEmails);
-app.get('/api/getListTitle',getListsTitle);
+app.get('/api/getContactList/:userId',getContactsLists);
+app.get('/api/getSenderEmails/:userId',getSendersEmails);
+app.get('/api/getListTitle/:userId',getListsTitle);
 app.post('/api/startCampaign',sendEmails);
 app.delete('/api/deleteTag/:tagToDelete',deleteTags);
 app.get('/mailTrack', trackingEmails);
 app.put('/api/updateEmailToken',updateEmails);
-app.get('/api/getSenderEmailsDetails',getSendersEmailsDetail)
+app.get('/api/getSenderEmailsDetails/:userId',getSendersEmailsDetail)
 app.post('/api/saveSequenceDetails',saveSequenceDetails)
 app.get('/api/seqName/:campId',getSequenceNames)
 app.get('/api/seqDetails',getSequenceDetails)
 app.delete('/api/deleteSequence/:id',deleteSequence)
-app.get('/api/getDomainNames/:titleId',getDomainNames)
+app.get('/api/getDomainNames/:titleId/:userId',getDomainNames)
 app.put('/api/updateSequenceDetails',updateSequnceDetails)
-app.get('/api/getSenderNames',getSendersNames)
+app.get('/api/getSenderNames/:userId',getSendersNames)
 app.put('/api/updateUnsubscribeStatus/:campId/:mailId',updateUnsubscribePage)
-app.get('/api/campaignStats/:selectedCampaign',campaignStats)
+app.get('/api/campaignStats/:selectedCampaign/:userId',campaignStats)
 app.get('/api/updateDomainLinkStatus/:campId/:mailId',updateDomainStatus)
 app.get('/api/getSenderEmailsAndMessageIds',getSenderEmailsAndMessageIds)
 app.post('/api/sendLiveDetectEmails',sendLiveDetectEmails)
 app.post('/postmark/inbound',liveDetectRepliesStatus)
-app.get('/api/getFilteredCampaignData/:selectedCampaignType',getFilteredCampaignData)
-app.get('/api/indexData',getIndexData)
+app.get('/api/getFilteredCampaignData/:selectedCampaignType/:userId',getFilteredCampaignData)
+app.get('/api/indexData/:userId',getIndexData)
 app.get('/api/chatsCampId/:email_id',getCampIdUsingEmailKeyId)
-app.get('/api/chatEmailData/:threadId',getChatData)
-app.get('/api/inboxItems',getInboxData)
-
+app.get('/api/chatEmailData/:threadId/:userId',getChatData)
+app.get('/api/inboxItems/:userId',getInboxData)
+app.post('/api/sendReply',sendMessage)
+app.get('/api/getSenderNamesForQuickCampaign/:userId',getSenderNamesForQuickCampaign)
+app.delete('/api/deleteStep/:stepId/:sequenceId',deleteStep)
+app.get('/api/fetchUpdatedSequences/:sequenceId',getUpdatedSequence)
+app.get('/api/tempApi',tempApi)
+app.post('/api/uploadContactsFromDashboard',uploadContactsFromDashboard)
+app.get('/api/fetchContactsForTags/:titleId',fetchContactsForTags)
+app.get('/api/getSenderEmailsForCampId/:campId',getSenderEmailsForCampId)
+app.post('/api/sendBulkEmails',sendBulkEmails)
+app.post('/api/testingRelies',processEmailConversations)
 // app.get('/message-streams/broadcast/suppressions/dump',liveDetectSubscriptionChange)
 
 
@@ -160,6 +178,25 @@ app.delete('/api/deleteEmail/:emailId', async (req, res) => {
 });
 
 
+
+app.get('/api/getEmailInfo',async (req,res)=>{
+  console.log("getEmailInfo")
+  let connection;
+  try{
+    connection = await dbConnection.getConnection();
+    console.log("connection",connection)
+    await processEmailConversations(connection);
+    res.send({"Success":"Successfully fetched"})
+
+  }catch(err){
+    console.log("Error in fetching mails",err)
+    res.send({"Error":err})
+  }
+})
+ 
+
+
+
 // cron.schedule('*/1 * * * *', async () => {
 //   console.log('Running updateRepliesStatus every 15 seconds');
 //   const connection = await dbConnection.getConnection();
@@ -173,18 +210,19 @@ app.delete('/api/deleteEmail/:emailId', async (req, res) => {
 //   }
 // });
 
-// cron.schedule('*/1 * * * *', async () => {
-//   console.log('Running updateRepliesStatus every 15 seconds');
-//   const connection = await dbConnection.getConnection();
-//   try {
-//       await processEmailConversations(connection);
-//       console.log("Process completed successfully.");
-//   } catch (error) {
-//       console.error("Error during the cron job process:", error);
-//   } finally {
-//       connection.release();
-//   }
-// });
+
+cron.schedule('*/10 * * * *', async () => {
+  console.log('Running updateRepliesStatus every 15 seconds');
+  const connection = await dbConnection.getConnection();
+  try {
+      await processEmailConversations(connection);
+      console.log("Process completed successfully.");
+  } catch (error) {
+      console.error("Error during the cron job process:", error);
+  } finally {
+      connection.release();
+  }
+});
 
 
 app.listen(port, () => {

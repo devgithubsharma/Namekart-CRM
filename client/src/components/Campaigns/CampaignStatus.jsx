@@ -1,10 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,useContext} from 'react';
 import axios from 'axios';
 import { DataGrid } from '@mui/x-data-grid';
 import Modal from 'react-modal';
 import { Tabs, Tab } from '@mui/material';
 import '../../style/CampaignStatus.css';
+import { makeStyles } from '@material-ui/core/styles';
+import { GlobalContext } from '../ContextApi/GlobalContext';
+import {fetchFilteredCampaigns} from '../../api'
+import {fetchListData} from '../../api'
+import {fetchCampaignsStats} from '../../api'
 
+
+const useStyles = makeStyles({
+  tab: {
+    // color: 'black',
+    // marginRight: '20px',
+    // '&.Mui-selected': {
+    //   backgroundColor: 'black',
+    //   color: 'white',
+    //   borderRadius:'20px',
+
+    // },
+    '&:hover': {
+      backgroundColor: 'transparent', // Set hover background to transparent or the desired color
+    },
+  },
+  tabList: {
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    '& .MuiTabs-flexContainer': {
+      justifyContent: 'center',
+    },
+    '& .MuiTabs-indicator': {
+      display: 'none',
+    },
+  }
+});
 
 function CampaignStatus() {
   const [campaignDetails, setCampaignDetails] = useState([]);
@@ -20,9 +51,9 @@ function CampaignStatus() {
   const [senderEmails, setSenderEmails] = useState([]);
   const [contactsReplied,setContactsReplied] = useState(null);
   const [senderEmailsAndMessageIds,setSenderEmailsAndMessageIds] = useState([]);
-  const [totalFirstMailCount,setTotalFirstMailCount] = useState(null);
-  const [totalFollowUpMailCount,setTotalFollowUpMailCount] = useState(null);
-  const [followUpSent, setTotalFollowUpSent] = useState(null);
+  // const [totalFirstMailCount,setTotalFirstMailCount] = useState(null);
+  // const [totalFollowUpMailCount,setTotalFollowUpMailCount] = useState(null);
+  const [followUpSent, setFollowUpSent] = useState(null);
   const [followUpOpened,setFollowUpOpened] = useState(null);
   const [followUpReplies, setFollowUpReplies] = useState(null);
   const [followUpBounced, setFollowUpBounced] = useState(null);
@@ -30,15 +61,16 @@ function CampaignStatus() {
   const [totalFollowUpMailSentCount,setTotalFollowUpMailSentCount] = useState(null);
   const [tabValue, setTabValue] = useState(0); // State to manage active tab
   const [selectedCampaignType, setSelectedCampaignType] = useState('liveDetect');
+  const { userId } = useContext(GlobalContext);
 
 
-
-  const firstEmailStatement = totalFirstMailSentCount >= csvLength.length 
+const classes = useStyles();
+  const firstEmailStatement = (mailSentCount + mailBounced) >= csvLength.length 
     ? "All first emails of this sequence have been sent."
     : "Sending first emails...";
 
 
-  const followUpStatement = totalFirstMailSentCount >= csvLength.length 
+  const followUpStatement = (mailSentCount + mailBounced) >= csvLength.length 
     ? (totalFollowUpMailSentCount >= csvLength.length
         ? "All follow-up emails have been sent to all contacts."
         : "Sending follow-up emails...")
@@ -50,7 +82,8 @@ function CampaignStatus() {
       const campaignTypes = ['liveDetect', 'bulk', 'manual'];
       setSelectedCampaignType(campaignTypes[tabValue]); 
       try {
-        const response = await axios.get(`http://localhost:3001/api/getFilteredCampaignData/${selectedCampaignType}`);
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getFilteredCampaignData/${selectedCampaignType}/${userId}`);
+        const response = await fetchFilteredCampaigns(selectedCampaignType,userId)
         console.log(response.data.result)
         setCampaignDetails(response.data.result);
       } catch (error) {
@@ -61,19 +94,18 @@ function CampaignStatus() {
   }, [tabValue,selectedCampaignType]);
 
 
-
-
   useEffect(() => {
-    const fetchListData = async () => {
+    const fetchListsData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/getEmailsByListId/${selectedTitleId}`);
+        // const response = await axios.get(`https://crmapi.namekart.com/api/getEmailsByListId/${selectedTitleId}/${userId}`);
+        const response = await fetchListData(selectedTitleId,userId)
         console.log(response)
         setCsvLength(response.data.domains);
       } catch (err) {
         console.error('Error in fetching List data', err);
       }
     };
-    fetchListData();
+    fetchListsData();
   }, [selectedTitleId,tabValue,selectedCampaignType]);
 
   const handleTabChange = (event, newValue) => {
@@ -103,7 +135,6 @@ function CampaignStatus() {
 });
 
 
-
   useEffect(()=>{
     console.log('selectedCampaignType',filteredCampaigns)
   },[filteredCampaigns]);
@@ -122,34 +153,31 @@ function CampaignStatus() {
   useEffect(() => {
     if (selectedCampaign !== null) {
       const fetchStats = () => {
-        axios.get(`http://localhost:3001/api/campaignStats/${selectedCampaign}`)
+         // axios.get(`https://crmapi.namekart.com/api/campaignStats/${selectedCampaign}/${userId}`)
+         fetchCampaignsStats(selectedCampaign,userId)
           .then(response => {
             console.log(response)
-            setMailSentCount(response.data.totalMailsCount);
+            setMailSentCount(response.data.totalFirstMails);
             setContactsUnsubscribed(response.data.totalUnsubscribes);
             setMailsOpened(response.data.totalMailsOpened);
             setMailBounced(response.data.totalBounced);
             setContactsClicked(response.data.totalClicks);
             setContactsReplied(response.data.totalReplies);
-            setTotalFirstMailCount(response.data.totalFirstMails);
-            setTotalFollowUpMailCount(response.data.totalFollowUpMail);
-            setTotalFollowUpSent(response.data.totalFollowUpSent);
+            setFollowUpSent(response.data.totalFollowUpMail);
             setFollowUpOpened(response.data.totalFollowUpOpens);
             setFollowUpReplies(response.data.totalFollowUpReplies);
             setFollowUpBounced(response.data.totalFollowUpMailBounced);
-            setTotalFirstMailSentCount(response.data.totalFirstMailSentCount);
-            setTotalFollowUpMailSentCount(response.data.totalFollowUpMailSentCount)
           })
           .catch(error => console.error('Error fetching campaign stats:', error));
       };
 
       fetchStats();
-      // const intervalId = setInterval(fetchStats, 10000);
-      // return () => clearInterval(intervalId);
     }
   }, [selectedCampaign,isModalOpen]);
 
-
+useEffect(()=>{
+  console.log('mailsOpened',mailsOpened)
+},[selectedCampaign,isModalOpen])
  
   const handleRowClick = async (params) => {
     const clickedCampaign = campaignDetails.find(campaign => campaign.camp_name === params.row.camp_name);
@@ -170,12 +198,12 @@ useEffect(()=>{
 
   return (
     <div style={{ height: 400, width: '80%' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '25px' }}>Campaign Status</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '25px' }}>Campaign Statistics</h2>
 
       <Tabs value={tabValue} onChange={handleTabChange} centered>
-        <Tab label="LiveDetect Campaigns" />
-        <Tab label="Bulk Campaigns" />
-        <Tab label="Manual Campaigns" />
+        <Tab label="LiveDetect Campaigns" className={classes.tab}/>
+        <Tab label="Bulk Campaigns" className={classes.tab}/>
+        <Tab label="Manual Campaigns" className={classes.tab}/>
       </Tabs>
 
       <DataGrid
@@ -197,6 +225,7 @@ useEffect(()=>{
           },
           }}
       />
+
 
       <Modal
         isOpen={isModalOpen}
@@ -223,7 +252,7 @@ useEffect(()=>{
                     <div className="CardTitle">Contacts replied</div>
                     <div className="CardStats">
                         <div className="CardValue">{contactsReplied}</div> 
-                        <div className="CardPercentage">{totalFirstMailCount > 0 ? ((contactsReplied / totalFirstMailCount) * 100).toFixed(2) : 0.00}%</div> 
+                        <div className="CardPercentage">{mailSentCount > 0 ? ((contactsReplied / mailSentCount) * 100).toFixed(2) : "0.00"}%</div> 
                     </div>
                 </div>
 
@@ -231,7 +260,7 @@ useEffect(()=>{
                     <div className="CardTitle">Contacts unsubscribed</div>
                     <div className="CardStats">
                         <div className="CardValue">{contactsUnsubscribed}</div> 
-                        <div className="CardPercentage">{totalFirstMailCount > 0 ? ((contactsUnsubscribed / totalFirstMailCount) * 100).toFixed(2) : 0.00}%</div> 
+                        <div className="CardPercentage">{mailSentCount > 0 ? ((contactsUnsubscribed / mailSentCount) * 100).toFixed(2) : "0.00"}%</div> 
                     </div>
                 </div>
             </div>
@@ -252,31 +281,35 @@ useEffect(()=>{
                     <div className="CardTitle">Contacts clicked</div>
                     <div className="CardStats">
                         <div className="CardValue">{contactsClicked}</div> 
-                        <div className="CardPercentage">{totalFirstMailCount > 0 ? ((contactsClicked / totalFirstMailCount) * 100).toFixed(2) : 0.00}%</div> 
+                        <div className="CardPercentage">{mailSentCount > 0 ? ((contactsClicked / mailSentCount) * 100).toFixed(2) : "0.00"}%</div> 
                     </div>
                 </div>
 
                 <div className="Card">
-                    <div className="CardTitle">Contacts opened</div>
-                    <div className="CardStats">
-                        <div className="CardValue">{mailsOpened}</div> 
-                        <div className="CardPercentage">{totalFirstMailCount > 0 ? ((mailsOpened / totalFirstMailCount) * 100).toFixed(2) : 0.00}%</div> 
-                    </div>
+                <div className="CardTitle">Contacts opened</div>
+                  <div className="CardStats">
+                      <div className="CardValue">{mailsOpened}</div>
+                      <div className="CardPercentage">
+                      {mailSentCount > 0 ? ((mailsOpened) / mailSentCount * 100).toFixed(2) : "0.00"}%
+                      </div>
+                  </div>
                 </div>
+
             </div>
             <div style={{ width: '100%' }}>
                     <p className="EmailStatement">{firstEmailStatement}</p> 
               </div>
 
-{/* {
-  totalFirstMailCount >= csvLength.length && (
+
+{
+  (mailSentCount + mailBounced) >= csvLength.length && (
     <>
       <div className='CardRow3'>
         <div className="Card">
           <div className="CardTitle">FollowUps Outreached</div>
           <div className="CardStats">
             <div className="CardValue">{followUpSent}</div>
-            <div className="CardPercentage">{csvLength.length > 0 ? ((followUpSent / csvLength.length) * 100).toFixed(2) : 0.00}%</div>
+            <div className="CardPercentage">{csvLength.length > 0 ? ((followUpSent / csvLength.length) * 100).toFixed(2) : "0.00"}%</div>
           </div>
         </div>
 
@@ -284,7 +317,7 @@ useEffect(()=>{
           <div className="CardTitle">FollowUps Replies</div>
           <div className="CardStats">
             <div className="CardValue">{followUpReplies}</div>
-            <div className="CardPercentage">{totalFollowUpMailCount > 0 ? ((followUpReplies / totalFollowUpMailCount) * 100).toFixed(2) : 0.00}%</div>
+            <div className="CardPercentage">{followUpSent > 0 ? ((followUpReplies / followUpSent) * 100).toFixed(2) : "0.00"}%</div>
           </div>
         </div>
 
@@ -292,7 +325,7 @@ useEffect(()=>{
           <div className="CardTitle">FollowUps Opened</div>
           <div className="CardStats">
             <div className="CardValue">{followUpOpened}</div>
-            <div className="CardPercentage">{totalFollowUpMailCount > 0 ? ((followUpOpened / totalFollowUpMailCount) * 100).toFixed(2) : 0.00}%</div>
+            <div className="CardPercentage">{followUpSent > 0 ? ((followUpOpened / followUpSent) * 100).toFixed(2) : "0.00"}%</div>
           </div>
         </div>
       </div>
@@ -302,16 +335,17 @@ useEffect(()=>{
           <div className="CardTitle">FollowUps Bounced</div>
           <div className="CardStats">
             <div className="CardValue">{followUpBounced}</div>
-            <div className="CardPercentage">{csvLength.length > 0 ? ((followUpBounced / csvLength.length) * 100).toFixed(2) : 0.00}%</div>
+            <div className="CardPercentage">{csvLength.length > 0 ? ((followUpBounced / csvLength.length) * 100).toFixed(2) : "0.00"}%</div>
           </div>
         </div>
       </div>
+
       <div style={{ width: '100%' }}> 
             <p className="EmailStatement">{followUpStatement}</p> 
       </div>
     </>
   )
-} */}
+}
 
         </div>
       </Modal>
