@@ -1,11 +1,11 @@
 const mysql = require('mysql');
 
 const dbConfig = {
-    host: '127.0.0.1', //'host.docker.internal',//'127.0.0.1',
-    port:3306,
-    user: 'axsiom_ahadmin',//'Yash',//axsiom_ahadmin
-    password: 'parlor-flier-polish',//'Wupv1674@',//parlor-flier-polish
-    database: "axsiom_auctionhacker1",//'crm_collections', //axsiom_auctionhacker1
+    host: process.env.host,
+    port:process.env.port,
+    user: process.env.hosted_user,
+    password: process.env.hosted_pass,
+    database: process.env.hosted_database,
     connectionLimit: 1000
   };
 
