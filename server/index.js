@@ -23,11 +23,13 @@ const {getEmailsById} = require('./Controllers/getEmailsByListIdController.js')
 const {getCampaignData} = require('./Controllers/getCampaignDataControllers.js')
 const {deleteCampaign} = require('./Controllers/deleteCampaignController.js')
 const {addEmails} = require('./Controllers/addEmailsController.js')
+const {updateEmail} = require('./Controllers/updateEmailController.js')
 const {deleteEmails} = require('./Controllers/deleteEmailsControllers.js')
 const {getContactsLists} = require('./Controllers/getContactsListsControllers.js')
 const {getSendersEmails} = require('./Controllers/getSendersEmailsControllers.js')
 const {getListsTitle} = require('./Controllers/getListsTitleController.js');
 const {sendEmails} = require('./Controllers/sendingEmailsController.js');
+const {isValidSenderEmails} = require('./Controllers/sendingEmailsController.js');
 const {deleteTags} = require('./Controllers/deleteTagsControllers.js');
 const {trackingEmails} = require('./Controllers/trackingEmailsController.js');
 const {updateEmails} = require('./Controllers/UpdateEmailsController.js');
@@ -85,11 +87,13 @@ app.get("/api/getEmailsByListId/:titleId/:userId",getEmailsById);
 app.get('/api/getCampaignsData/:userId',getCampaignData);
 app.delete('/api/deleteCampaign',deleteCampaign);
 app.post('/api/addEmails',addEmails);
+app.put('/api/updateEmail/:sender_id',updateEmail);
 app.delete('/api/deleteEmail/:emailToDelete',deleteEmails);
 app.get('/api/getContactList/:userId',getContactsLists);
 app.get('/api/getSenderEmails/:userId',getSendersEmails);
 app.get('/api/getListTitle/:userId',getListsTitle);
 app.post('/api/startCampaign',sendEmails);
+app.post('/api/isValidSenderEmails',isValidSenderEmails);
 app.delete('/api/deleteTag/:tagToDelete',deleteTags);
 app.get('/mailTrack', trackingEmails);
 app.put('/api/updateEmailToken',updateEmails);

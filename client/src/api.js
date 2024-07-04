@@ -171,6 +171,16 @@ export const fetchSenderNames = async (params1,params2) => {
     }
 };
 
+export const isValidSenderEmails = async (data) => {
+    try {
+        const response = await api.post(`/isValidSenderEmails`, data);
+        return response;
+    } catch (error) {
+        console.log("Error in fetchSenderNames",error)
+        throw error.response.data;
+    }
+};
+
 export const fetchDomainNames = async (params1,params2) => {
     try {
         const response = await api.get(`/getDomainNames/${params1}/${params2}`);
@@ -263,6 +273,22 @@ export const saveSenderEmails = async (email,name,accessTokenInput,refreshTokenI
         return response;
     } catch (error) {
         console.log("Error in saveSenderEmails",error)
+        throw error.response.data;
+    }
+};
+
+export const updateSenderEmail = async (editRowId, editedEmail, editedName, editedRefreshToken, userId) => {
+    try {
+        const response = api.put(`/updateEmail/${editRowId}`,{
+            email: editedEmail, 
+            name: editedName,
+            accessToken: "", 
+            refreshToken: editedRefreshToken, 
+            userId:userId
+        })
+        return response;
+    } catch (error) {
+        console.log("Error in update sender Email",error)
         throw error.response.data;
     }
 };
