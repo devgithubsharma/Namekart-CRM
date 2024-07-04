@@ -1,8 +1,9 @@
 {
   "name": "client",
   "version": "0.1.0",
-  "private": true,
   "homepage": "/crm",
+  "private": true,
+  
   "dependencies": {
     "@azure/msal-browser": "^3.6.0",
     "@azure/msal-react": "^2.0.8",
