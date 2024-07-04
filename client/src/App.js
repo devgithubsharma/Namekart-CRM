@@ -20,6 +20,7 @@ import Login from './components/Authentication/Login';
 import AuthenticatedRoute from './components/AuthenticatedRoute';
 import TermsAndServices from './components/TermsAndServices';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import OAuth2Callback from './components/OAuth2Callback';
 
 
 
@@ -47,7 +48,7 @@ function App() {
         <Route path="/home/termsAndServices" element={<TermsAndServices/>} />
         <Route path="/home/privacyPolicy" element={<PrivacyPolicy/>} />
       </Route>
-      
+      <Route path="/oauth2callback" element={<OAuth2Callback/>} />
       <Route path='/unsubscribe/:campId/:mailId' element={<UnSubscribePage/>}></Route>
       <Route path='/domainLink/:campId/:mailId/:domainLink' element={<DomainLinkPage/>}></Route>
     </Routes>
