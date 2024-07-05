@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useEffect, useState, useContext } from "react";
 import {
   TextField,
@@ -20,25 +19,14 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import { GlobalContext } from "../ContextApi/GlobalContext";
+import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 import {
   saveSenderEmails,
   deleteEmail,
   fetchSenderEmailsDetails,
   updateSenderEmail,
 } from "../../api";
-=======
-import React, { useEffect, useState,useContext } from 'react';
-import { TextField, Button, Table, TableBody, TableContainer, TableCell, TableHead, TableRow, IconButton, Typography, Paper } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
-import { GlobalContext } from '../ContextApi/GlobalContext';
-import {saveSenderEmails} from '../../api'
-import {deleteEmail} from '../../api'
-import {fetchSenderEmailsDetails} from '../../api'
-import {fetchTag} from '../../api'
-import { useLocation } from 'react-router-dom';
-
->>>>>>> sender-mail-verify
 
 function SendersEmails() {
   const [email, setEmail] = useState("");
@@ -47,7 +35,6 @@ function SendersEmails() {
   const [accessTokenInput, setAccessTokenInput] = useState("");
   const [refreshTokenInput, setRefreshTokenInput] = useState("");
   const [tokens, setTokens] = useState({});
-<<<<<<< HEAD
   const [editRowId, setEditRowId] = useState(null);
   const [editedEmail, setEditedEmail] = useState("");
   const [editedName, setEditedName] = useState("");
@@ -56,14 +43,9 @@ function SendersEmails() {
   const [isHovered1, setIsHovered1] = useState(false);
   const [isHovered2, setIsHovered2] = useState(false);
   const { userId } = useContext(GlobalContext);
-=======
+
+
   const location = useLocation();
-  
-
-  const [isHovered1, setIsHovered1] = useState(false); 
-  const [isHovered2, setIsHovered2] = useState(false); 
-  const { userId } = useContext(GlobalContext);
-
 
   const clientId = "779579592103-36umoki6urjdtqhicvho4mh1qrvvmi8t.apps.googleusercontent.com"
   const redirectUri = "http://localhost:3000/oauth2callback"
@@ -71,23 +53,30 @@ function SendersEmails() {
 
   useEffect(() => {
     if (location.state) {
-      if (location.state.accessToken) {
-        setAccessTokenInput(location.state.accessToken);
-        console.log('Received Access Token:', location.state.accessToken);
-      }
-      if (location.state.refreshToken) {
+      // if (location.state.accessToken) {
+      //   setAccessTokenInput(location.state.accessToken);
+        
+      //   console.log('Received Access Token:', location.state.accessToken);
+      // }
+      if (location.state && location.state.refreshToken) {
         setRefreshTokenInput(location.state.refreshToken);
         console.log('Received Refresh Token:', location.state.refreshToken);
+        location.state.refreshToken = null;
       }
     }
   }, [location.state]);
 
-
   const handleGoogleAuth = () => {
+    setRefreshTokenInput("");
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=consent`;
     window.location.href = authUrl;
   };
->>>>>>> sender-mail-verify
+
+  const handleGetTokens = async () => {
+    console.log("get tokens")
+    const response = await axios.get('http://localhost:3001/auth/google')
+    console.log("response", response)
+  }
 
   const handleMouseEnter1 = () => {
     setIsHovered1(true);
@@ -148,18 +137,6 @@ function SendersEmails() {
       alert("Duplicate email or empty field!");
     }
   };
-<<<<<<< HEAD
-=======
-
-
-  const handleGetTokens = async () => {
-    console.log("get tokens")
-    const response = await axios.get('http://localhost:3001/auth/google')
-    console.log("response",response)
-  }
-  
-
->>>>>>> sender-mail-verify
 
   const handleDeleteEmail = (emailToDelete) => {
     deleteEmail(emailToDelete)
@@ -197,11 +174,11 @@ function SendersEmails() {
       const updatedEmails = emails.map((email) =>
         email.id === editRowId
           ? {
-              ...email,
-              email: editedEmail,
-              name: editedName,
-              refreshToken: editedRefreshToken,
-            }
+            ...email,
+            email: editedEmail,
+            name: editedName,
+            refreshToken: editedRefreshToken,
+          }
           : email
       );
       setEmails(updatedEmails);
@@ -250,42 +227,6 @@ function SendersEmails() {
     };
     fetchData();
   }, []);
-<<<<<<< HEAD
-=======
-  
-// useEffect(() => {
-//     const urlParams = new URLSearchParams(window.location.search);
-//     const authorizationCode = urlParams.get('code');
-//     console.log("authorizationCode",authorizationCode)
-//     if (authorizationCode) {
-//       const fetchTokens = async () => {
-//         console.log("Inside fetchTokens")
-//         try {
-//           const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', null, {
-//             params: {
-//               code: authorizationCode,
-//               client_id: clientId,
-//               client_secret: client_secret, // Replace with your actual client secret
-//               redirect_uri: redirectUri,
-//               grant_type: 'authorization_code',
-//             },
-//             timeout: 120000,
-//           });
-
-//           const { access_token, refresh_token } = tokenResponse.data;
-//           setAccessTokenInput(access_token);
-//           setRefreshTokenInput(refresh_token);
-//           console.log('Access Token:', access_token);
-//           console.log('Refresh Token:', refresh_token);
-//         } catch (error) {
-//           console.error('Error exchanging authorization code for tokens:', error);
-//         }
-//       };
-//       fetchTokens();
-//     }
-//   }, []);
-
->>>>>>> sender-mail-verify
 
   return (
     <div style={{ margin: "20px" }}>
@@ -323,6 +264,25 @@ function SendersEmails() {
         <Button
           variant="contained"
           color="primary"
+          onClick={handleGoogleAuth}
+          onMouseEnter={handleMouseEnter2}
+          onMouseLeave={handleMouseLeave2}
+          style={{
+            height: "40px",
+            maxWidth: "150px",
+            borderRadius: "15px",
+            marginRight: "10px",
+            backgroundColor: refreshTokenInput ? "grey" : isHovered2 ? "grey" : "black",
+            color: "white",
+          }}
+          disabled={refreshTokenInput}
+        >
+          Get Token
+        </Button>
+
+        <Button
+          variant="contained"
+          color="primary"
           onClick={handleAddDetails}
           onMouseEnter={handleMouseEnter1}
           onMouseLeave={handleMouseLeave1}
@@ -330,9 +290,11 @@ function SendersEmails() {
             height: "40px",
             maxWidth: "150px",
             borderRadius: "15px",
-            backgroundColor: isHovered1 ? "grey" : "black",
+            backgroundColor: (!refreshTokenInput || !email || !name) ? "grey"
+              : isHovered1 ? "grey" : "black",
             color: "white",
           }}
+          disabled={!refreshTokenInput || !email || !name}
         >
           Add Details
         </Button>
@@ -430,18 +392,7 @@ function SendersEmails() {
           </TableBody>
         </Table>
       </TableContainer>
-<<<<<<< HEAD
-=======
-
-      <Button variant="contained" color="primary" onClick={handleGoogleAuth} onMouseEnter={handleMouseEnter1}
-        onMouseLeave={handleMouseLeave1} style={{ height: '40px' ,maxWidth:'150px',borderRadius:'15px', backgroundColor: isHovered1 ? 'grey' : 'black',color:'white'}}> 
-            Get tokens
-      </Button>
-        
->>>>>>> sender-mail-verify
     </div>
-    
-
   );
 }
 
