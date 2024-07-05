@@ -8,8 +8,7 @@ const {google} = require('googleapis');
 const cron = require('node-cron'); 
 // const connection = dbConnection.getConnection();
 
-const port = 90; //3001 / 90
-
+const port = 9000; //3001 / 90
 
 const { organizedEmailController } = require('./Controllers/receivingEmailsControllers.js');
 const {createList} = require('./Controllers/listsController.js')
@@ -127,10 +126,6 @@ app.get('/api/fetchContactsForTags/:titleId',fetchContactsForTags)
 app.get('/api/getSenderEmailsForCampId/:campId',getSenderEmailsForCampId)
 app.post('/api/sendBulkEmails',sendBulkEmails)
 app.post('/api/testingRelies',processEmailConversations)
-
-
-
-
 // app.get('/message-streams/broadcast/suppressions/dump',liveDetectSubscriptionChange)
 
 
