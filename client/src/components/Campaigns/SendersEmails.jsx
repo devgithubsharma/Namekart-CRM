@@ -130,6 +130,7 @@ function SendersEmails() {
         setName("");
         setAccessTokenInput("");
         setRefreshTokenInput("");
+        fetchData();
       } catch (error) {
         console.error("Failed to save email and access token:", error);
       }
@@ -186,6 +187,7 @@ function SendersEmails() {
       setEditedEmail("");
       setEditedName("");
       setEditedRefreshToken("");
+      fetchData();
     } catch (error) {
       console.error("Failed to update email:", error);
     }
@@ -198,33 +200,34 @@ function SendersEmails() {
     setEditedRefreshToken("");
   };
 
+  const fetchData = async () => {
+    try {
+      const response = await fetchSenderEmailsDetails(userId);
+      const validEmails = response.data.result.filter(
+        (email) => email.sender_email_id && email.sender_id
+      );
+      setEmails(
+        validEmails.map((response) => ({
+          id: response.sender_id,
+          email: response.sender_email_id,
+          name: response.sender_name || "",
+          isActive: response.isActive || "",
+          refreshToken: response.refreshToken || "",
+        }))
+      );
+
+      const initialTokens = validEmails.reduce((acc, email) => {
+        acc[email.sender_id] = email.refreshToken || "";
+        return acc;
+      }, {});
+
+      setTokens(initialTokens);
+    } catch (error) {
+      console.error("Error in fetching sender emails:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetchSenderEmailsDetails(userId);
-        const validEmails = response.data.result.filter(
-          (email) => email.sender_email_id && email.sender_id
-        );
-        setEmails(
-          validEmails.map((response) => ({
-            id: response.sender_id,
-            email: response.sender_email_id,
-            name: response.sender_name || "",
-            isActive: response.isActive || "",
-            refreshToken: response.refreshToken || "",
-          }))
-        );
-
-        const initialTokens = validEmails.reduce((acc, email) => {
-          acc[email.sender_id] = email.refreshToken || "";
-          return acc;
-        }, {});
-
-        setTokens(initialTokens);
-      } catch (error) {
-        console.error("Error in fetching sender emails:", error);
-      }
-    };
     fetchData();
   }, []);
 
@@ -261,7 +264,7 @@ function SendersEmails() {
           style={{ marginRight: "10px", flex: 1, maxWidth: "200px" }}
         />
 
-        <Button
+        {/* <Button
           variant="contained"
           color="primary"
           onClick={handleGoogleAuth}
@@ -278,7 +281,7 @@ function SendersEmails() {
           disabled={refreshTokenInput}
         >
           Get Token
-        </Button>
+        </Button> */}
 
         <Button
           variant="contained"
