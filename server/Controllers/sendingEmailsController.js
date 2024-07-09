@@ -150,6 +150,7 @@ async function sendEmail(emailContent, gmail) {
     userId: "me",
     requestBody: {
       raw: base64Email,
+      labelIds: ["SENT"], 
     },
   });
   console.log("sddssdsdsd", response);

@@ -1,10 +1,10 @@
 // import { appBarClasses } from '@mui/material';
 import axios from 'axios';
-const API_BASE_URL_LOCALHOST = 'http://localhost:9000/api';
+const API_BASE_URL_LOCALHOST = 'http://localhost:3001/api';
 const API_BASE_URL_NAMEKART = "https://crmapi.namekart.com/api";
 
 const api = axios.create({
-    baseURL: API_BASE_URL_LOCALHOST,
+    baseURL: API_BASE_URL_NAMEKART,
     responseType: "json",
     headers: { 
      accept: "application/json",
@@ -406,7 +406,9 @@ export const logins = async (login,password) => {
         const response = await api.post('/login', { 
           login:login, 
           password:password,
-        });
+        }, {
+            timeout: 120000, 
+          });
         console.log("response",response)
         return response;
     } catch (error) {

@@ -30,7 +30,7 @@ import OAuth2Callback from './components/OAuth2Callback';
 function App() {
   return (
     // basename={'/crm'}
-  <Router >
+  <Router basename={'/crm'}>
     <Routes>
     <Route path="/" element={<Signup/>}/>
     <Route path="/login" element={<Login/>}/>

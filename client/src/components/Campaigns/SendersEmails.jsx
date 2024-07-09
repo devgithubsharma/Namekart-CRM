@@ -51,6 +51,7 @@ function SendersEmails() {
   const redirectUri = "http://localhost:3000/oauth2callback"
   const scope = 'https://mail.google.com/'
 
+
   useEffect(() => {
     if (location.state) {
       // if (location.state.accessToken) {
