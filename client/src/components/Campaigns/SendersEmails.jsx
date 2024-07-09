@@ -110,27 +110,27 @@ function SendersEmails() {
           userId
         );
 
-        const newEmail = {
-          id: response.data.sender_id,
-          email: email,
-          name: name,
-          accessToken: accessTokenInput,
-          refreshToken: refreshTokenInput,
-        };
+        // const newEmail = {
+        //   id: response.data.sender_id,
+        //   email: email,
+        //   name: name,
+        //   accessToken: accessTokenInput,
+        //   refreshToken: refreshTokenInput,
+        // };
 
-        setEmails([...emails, newEmail]);
-        setTokens({
-          ...tokens,
-          [newEmail.id]: {
-            accessToken: accessTokenInput,
-            refreshToken: refreshTokenInput,
-          },
-        });
+        // setEmails([...emails, newEmail]);
+        // setTokens({
+        //   ...tokens,
+        //   [newEmail.id]: {
+        //     accessToken: accessTokenInput,
+        //     refreshToken: refreshTokenInput,
+        //   },
+        // });
+        fetchData();
         setEmail("");
         setName("");
         setAccessTokenInput("");
         setRefreshTokenInput("");
-        fetchData();
       } catch (error) {
         console.error("Failed to save email and access token:", error);
       }
