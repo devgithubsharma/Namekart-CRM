@@ -105,7 +105,7 @@ function Campaigns() {
 
     navigate('/home/mailingCampaigns', { state: {
       campName: clickedCampaign.camp_name,
-      titleId: clickedCampaign.title_id,
+      tags_id: clickedCampaign.tags_id,
       campId: clickedCampaign.camp_id,
       userId:userId
     }});
@@ -115,7 +115,6 @@ function Campaigns() {
   const handleTagChange = (e) => {
     const selectedValue = e.target.value;
     const selectedTagObject = tags.find(tag => tag.tags === selectedValue);
-    console.log(selectedTagObject)
     setSelectedTag(selectedTagObject);
   };
 
@@ -206,7 +205,7 @@ const rows = [...campaigns].reverse().map((campaign,index) => ({
       setStep(2);
     } else {
       try {
-       saveCampaign(campaignName,selectedTag.tags,selectedTag.title_id,userId).then(response =>{
+       saveCampaign(campaignName,selectedTag.tags_id,selectedTag.title_ids,userId).then(response =>{
           console.log('Axios success:', response)
           if (response.data.success) {
             setCampaigns(prevCampaigns => [
@@ -218,7 +217,8 @@ const rows = [...campaigns].reverse().map((campaign,index) => ({
           handleCancel();
           navigate('/home/mailingCampaigns',{state :{
             campName:campaignName,
-            titleId:selectedTag.title_id,
+            titleId:selectedTag.title_ids[0],
+            tags_id:selectedTag.tags_id,
             campId:response.data.camp_id,
             userId:userId
           }})   

@@ -28,7 +28,6 @@ import {
   updateSenderEmail,
 } from "../../api";
 
-
 function SendersEmails() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -51,7 +50,6 @@ function SendersEmails() {
   const clientId = "779579592103-36umoki6urjdtqhicvho4mh1qrvvmi8t.apps.googleusercontent.com"
   const redirectUri = "http://localhost:3000/oauth2callback"
   const scope = 'https://mail.google.com/'
-
 
   useEffect(() => {
     if (location.state) {
@@ -112,23 +110,10 @@ function SendersEmails() {
           userId
         );
 
-        // const newEmail = {
-        //   id: response.data.sender_id,
-        //   email: email,
-        //   name: name,
-        //   accessToken: accessTokenInput,
-        //   refreshToken: refreshTokenInput,
-        // };
 
-        // setEmails([...emails, newEmail]);
-        // setTokens({
-        //   ...tokens,
-        //   [newEmail.id]: {
-        //     accessToken: accessTokenInput,
-        //     refreshToken: refreshTokenInput,
-        //   },
-        // });
-        fetchData();
+        if (response.data.sender_id) {
+          fetchData();
+        }
         setEmail("");
         setName("");
         setAccessTokenInput("");
