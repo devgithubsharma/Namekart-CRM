@@ -1,26 +1,32 @@
 const dbConnection = require('../dbConnection');
 
-const getDomainNames = async (req,res) =>{
-    const titleId = req.params.titleId
+const getDomainNames = async (req, res) => {
+    const tags_id = req.params.tags_id;
     const userId = req.params.userId
     let connection;
 
-    try{
-       connection = await dbConnection.getConnection();
-        const query = "SELECT domains FROM listsdata WHERE title_id  = ? AND userId = ?"
+    try {
+        connection = await dbConnection.getConnection();
 
-        await connection.query(query,[titleId,userId],(err,result)=>{
-            if(err){
-                console.error('Error in fetching domains:', err);
+        const query = `
+        SELECT listsdata.domains FROM listsdata 
+        INNER JOIN titledata ON listsdata.title_id = titledata.title_id
+        INNER JOIN titles_tags ON titledata.title_id = titles_tags.title_id
+        INNER JOIN tagsdata ON titles_tags.tags_id = tagsdata.tags_id
+        WHERE tagsdata.tags_id = ? AND tagsdata.userId = ?;
+    `;
+
+        await connection.query(query, [tags_id, userId], (err, result) => {
+            if (err) {
                 res.status(500).send('Error fetching domains');
-            }else{
+            } else {
                 connection.release();
                 res.json({ domains: result.map(row => row.domains) });
             }
         })
-    }catch(err){
+    } catch (err) {
         console.error('Error in getting domains by listId Controllers', err.message)
-        if(connection){
+        if (connection) {
             connection.release();
         }
         res.status(500).json({ error: 'Internal Server Error' });

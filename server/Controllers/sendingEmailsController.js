@@ -81,7 +81,7 @@ function incrementSentEmailCount(campaignId, connection) {
 async function getThreadIdForFollowUp(campId, receiverEmail, connection) {
   return new Promise((resolve, reject) => {
     const query =
-      "SELECT id FROM thread WHERE camp_id = ? AND receiver_email = ? LIMIT 1";
+      "SELECT id FROM threads WHERE camp_id = ? AND receiver_email = ? LIMIT 1";
     connection.query(query, [campId, receiverEmail], (err, results) => {
       if (err) {
         console.error("Error fetching threadId for follow-up:", err);
@@ -153,7 +153,6 @@ async function sendEmail(emailContent, gmail) {
       labelIds: ["SENT"], 
     },
   });
-  console.log("sddssdsdsd", response);
   console.log("After sent mail response");
   return response;
 }
@@ -224,24 +223,24 @@ const isValidSenderEmails = async (req, res) => {
   }
 };
 
-const sendEmails = async (req, res) => {
+const sendEmailService = async (req) => {
   console.log("DateToSend", new Date());
 
-  const sendersEmails = req.body.sendersEmails;
-  const receiversEmails = req.body.receiversEmails;
-  const senderNames = req.body.senderNames;
-  const receiverNames = req.body.receiverName;
-  const leads = req.body.leads;
-  let subject = req.body.subject;
-  const pretext = req.body.pretext;
-  let emailBody = req.body.emailBody;
-  const emailDelay = req.body.delay;
-  const domains = req.body.domains;
-  const campId = req.body.campId;
-  const stepSeq = req.body.stepCount;
-  let domainLinks = req.body.domainLinks;
-  const userId = req.body.userId;
-  const campRunningType = req.body.campRunningType;
+  const sendersEmails = req.sendersEmails;
+  const receiversEmails = req.receiversEmails;
+  const senderNames = req.senderNames;
+  const receiverNames = req.receiverName;
+  const leads = req.leads;
+  let subject = req.subject;
+  const pretext = req.pretext;
+  let emailBody = req.body;
+  const emailDelay = req.delay;
+  const domains = req.domains;
+  const campId = req.campId;
+  const stepSeq = req.stepCount;
+  let domainLinks = req.domainLinks;
+  const userId = req.userId;
+  const campRunningType = req.campRunningType;
   const sentTime = format(new Date(), "yyyy-MM-dd HH:mm:ss");
   let connection;
 
@@ -262,16 +261,9 @@ const sendEmails = async (req, res) => {
       receiversEmails.length / sendersEmails.length
     );
 
-    let startTime;
+    // let startTime = new Date(Date.now() + 5000);
 
-    if (emailDelay === 0) {
-      startTime = new Date(Date.now() + 5000);
-    } else {
-      startTime = new Date(Date.now() + emailDelay * 24 * 60 * 60 * 1000);
-    }
-
-    console.log("startTime", startTime);
-    schedule.scheduleJob(startTime, async () => {
+    // schedule.scheduleJob(startTime, async () => {
       for (let i = 0; i < sendersEmails.length; i++) {
         let sender;
         if (campRunningType === "quickCampaign") {
@@ -281,7 +273,13 @@ const sendEmails = async (req, res) => {
         }
         console.log("sender", sender);
         let senderName;
-        
+        try{
+          senderName = senderNames[i].sender_name;
+          console.log("senderName", senderName);
+        }catch(err){
+          console.log("Error in fetching senderNames",err)
+        }
+        console.log("senderName", senderName);
         const start = i * emailsPerSender;
         const end =
           i + 1 === sendersEmails.length
@@ -409,9 +407,9 @@ const sendEmails = async (req, res) => {
                 body: emailBodyWithReplacements,
                 headers: headers,
               };
-              console.log("After emails");
+              console.log("emails body",email);
               const emailContent = createEmailContent(email);
-              console.log("After email content");
+              console.log("After create email content",emailContent);
               const result = await sendEmail(emailContent, gmail);
               console.log("result", result);
 
@@ -550,12 +548,10 @@ const sendEmails = async (req, res) => {
           }
         }
       }
-
-      res.status(200).send("Email has sent");
-    });
+    // });
+    console.log("good");
   } catch (err) {
     console.error("Error in email Campaigning:", err);
-    res.status(500).send({ error: "Internal Server Error" });
   } finally {
     if (connection) {
       connection.release();
@@ -563,8 +559,20 @@ const sendEmails = async (req, res) => {
   }
 };
 
+//send emails on camp start controller
+const sendEmails = async (req, res) => {
+  try {
+    await sendEmailService(req);
+    res.status(200).send("Emails have been scheduled and will be sent shortly.");
+  } catch (error) {
+    console.error("Error in sending emails:", error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   sendEmails,
+  sendEmailService,
   isValidSenderEmails,
-  verifySendersEmails
+  verifySendersEmails,
 };

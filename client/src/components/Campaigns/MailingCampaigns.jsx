@@ -62,6 +62,7 @@ import { fetchDomainNames } from "../../api";
 import { deleteCampaigns } from "../../api";
 import { startCampaigns } from "../../api";
 import { fetchSenderEmailsDetails } from "../../api";
+import { getCampaignStatus } from "../../api";
 
 const useStyles = makeStyles({
   tab: {
@@ -213,11 +214,13 @@ function MailingCampaigns() {
 
   const campName = location.state.campName;
   const titleId = location.state.titleId;
+  const tags_id = location.state.tags_id;
   const campId = location.state.campId;
   const userId = location.state.userId;
 
   console.log("CampName", campName);
   console.log("titleId", titleId);
+  console.log("tags_id", tags_id);
   console.log("campId", campId);
   console.log("userId", userId);
 
@@ -999,7 +1002,7 @@ function MailingCampaigns() {
     const fetchEmails = async () => {
       try {
         // const response = await axios.get(`https://crmapi.namekart.com/api/getEmailsByListId/${titleId}/${userId}`);
-        const response = await fetchListData(titleId, userId);
+        const response = await fetchListData(tags_id, userId);
         setEmails(response.data.emails);
         setReceiverName(response.data.names);
         setDomainLink(response.data.links);
@@ -1009,20 +1012,20 @@ function MailingCampaigns() {
       }
     };
     fetchEmails();
-  }, [titleId]);
+  }, [tags_id]);
 
   useEffect(() => {
     const fetchDomainsNames = async () => {
       try {
         // const response = await axios.get(`https://crmapi.namekart.com/api/getDomainNames/${titleId}/${userId}`);
-        const response = await fetchDomainNames(titleId, userId);
+        const response = await fetchDomainNames(tags_id, userId);
         setDomainNames(response.data.domains);
       } catch (error) {
         console.error("Error fetching emails:", error);
       }
     };
     fetchDomainsNames();
-  }, [titleId]);
+  }, [tags_id]);
 
   const columns1 = [
     {
@@ -1071,10 +1074,10 @@ function MailingCampaigns() {
 
   const handleSaveFilters = async () => {
     console.log(selectedTag);
-    if (selectedTag && selectedTag.title_id) {
+    if (selectedTag && selectedTag.tags_id) {
       try {
         // const response = await axios.get(`https://crmapi.namekart.com/api/getEmailsByListId/${selectedTag.title_id}/${userId}`);
-        const response = await fetchListData(selectedTag.title_id, userId);
+        const response = await fetchListData(selectedTag.tags_id, userId);
         setEmails(response.data.emails);
         setDomainNames(response.data.domains);
         setConfirmedTag(selectedTag);
@@ -1263,43 +1266,78 @@ function MailingCampaigns() {
     console.log("domainNames", domainNames);
   }, [domainNames]);
 
+  // const startCampaign = async () => {
+  //   try {
+      // const sequenceToSend = sequences.find(
+      //   (seq) => seq.id === activeSequenceTab
+      // );
+  //     let cumulativeDelay = 0;
+  //     updateCampaignStatus(campId, "running");
+
+  //     for (let i = 0; i < sequenceToSend.steps.length; i++) {
+  //       const step = sequenceToSend.steps[i];
+
+  //       console.log(step);
+  //       const campaignData = {
+  //         receiversEmails: emails,
+  //         sendersEmails: senderSelected,
+  //         senderNames: senderNames,
+  //         receiverName: receiverName,
+  //         leads: leads,
+  //         subject: step.subject,
+  //         pretext: step.pretext,
+  //         emailBody: step.body,
+  //         delay: cumulativeDelay,
+  //         domains: domainNames,
+  //         campId: campId,
+  //         stepCount: i + 1,
+  //         totalMailStep: sequenceToSend.steps.length,
+  //         domainLinks: domainLink,
+  //         userId: userId,
+  //         campRunningType: "simpleCampaign",
+  //       };
+
+  //       navigate("/home/manualCampaigns", { replace: true });
+  //       // const response = await axios.post('https://crmapi.namekart.com/api/startCampaign', campaignData);
+  //       const response = await startCampaigns(campaignData);
+  //       setIsFirstEmail(false);
+  //       console.log("Response:", response);
+  //       cumulativeDelay = step.delay;
+  //     }
+
+  //     updateCampaignStatus(campId, "completed");
+  //   } catch (err) {
+  //     updateCampaignStatus(campId, "interrupted");
+  //     console.error("Error in starting campaign:", err);
+  //   }
+  // };
+
   const startCampaign = async () => {
     try {
+      updateCampaignStatus(campId, "running");
       const sequenceToSend = sequences.find(
         (seq) => seq.id === activeSequenceTab
       );
-      let cumulativeDelay = 0;
-      updateCampaignStatus(campId, "running");
 
-      for (let i = 0; i < sequenceToSend.steps.length; i++) {
-        const step = sequenceToSend.steps[i];
+      const delayTimes = sequenceToSend.steps.map(step => {
+        const delayInDays = step.delay;
+        const currentDate = new Date();
+        const futureDate = new Date(currentDate.setDate(currentDate.getDate() + delayInDays));
+        return futureDate;
+    });    
 
-        console.log(step);
         const campaignData = {
-          receiversEmails: emails,
-          sendersEmails: senderSelected,
-          senderNames: senderNames,
-          receiverName: receiverName,
-          leads: leads,
-          subject: step.subject,
-          pretext: step.pretext,
-          emailBody: step.body,
-          delay: cumulativeDelay,
-          domains: domainNames,
-          campId: campId,
-          stepCount: i + 1,
-          domainLinks: domainLink,
-          userId: userId,
-          campRunningType: "simpleCampaign",
+          sequenceId: sequenceToSend.id,
+          sendersEmails: senderSelected,//array of string
+          senderNames: senderNames,//array of object
+          campId: campId,//integer
+          tags_id: tags_id,//integer
+          userId: userId,//string
+          campRunningType: "simpleCampaign",//string
+          delayTimes: delayTimes, //array of date
         };
-
         navigate("/home/manualCampaigns", { replace: true });
-        // const response = await axios.post('https://crmapi.namekart.com/api/startCampaign', campaignData);
         const response = await startCampaigns(campaignData);
-        setIsFirstEmail(false);
-        console.log("Response:", response);
-        cumulativeDelay = step.delay;
-      }
 
       updateCampaignStatus(campId, "completed");
     } catch (err) {
@@ -1309,7 +1347,8 @@ function MailingCampaigns() {
   };
 
   useEffect(() => {
-    fetchCampaignStatus(campId)
+    // fetchCampaignStatus(campId)
+    getCampaignStatus(campId)
       .then((status) => {
         setIsCampaignRunning(status === "running");
       })
