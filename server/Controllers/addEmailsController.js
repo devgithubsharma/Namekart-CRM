@@ -10,6 +10,7 @@ const addEmails = async (req,res)=>{
     // const user_id = 'dev@namekart.com';
     const userId = req.body.userId
     let connection;
+    
     try{
 
         connection = await dbConnection.getConnection();
@@ -22,7 +23,7 @@ const addEmails = async (req,res)=>{
                 res.status(500).json({ error: 'Internal Server Error' });
 
             }else{
-               
+                console.log("result", result)
                 res.status(200).json({ message: 'Email created successfully',sender_id: result.insertId });
             }
         })

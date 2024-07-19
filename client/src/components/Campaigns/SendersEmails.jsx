@@ -96,6 +96,7 @@ function SendersEmails() {
     setIsHovered2(false);
   };
 
+
   const handleAddDetails = async () => {
     if (
       email &&
@@ -111,6 +112,8 @@ function SendersEmails() {
           refreshTokenInput,
           userId
         );
+
+        console.log("reponse", response)
 
         // const newEmail = {
         //   id: response.data.sender_id,
@@ -205,6 +208,7 @@ function SendersEmails() {
   const fetchData = async () => {
     try {
       const response = await fetchSenderEmailsDetails(userId);
+      console.log("fetchData response", response)
       const validEmails = response.data.result.filter(
         (email) => email.sender_email_id && email.sender_id
       );

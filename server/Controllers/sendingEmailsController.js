@@ -280,8 +280,8 @@ const sendEmails = async (req, res) => {
           sender = sendersEmails[i];
         }
         console.log("sender", sender);
-        const senderName = senderNames[i].sender_name;
-        console.log("senderName", senderName);
+        let senderName;
+        
         const start = i * emailsPerSender;
         const end =
           i + 1 === sendersEmails.length

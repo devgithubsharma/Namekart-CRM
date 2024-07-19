@@ -9,6 +9,7 @@ const dbConfig = {
     connectionLimit: 1000
   };
 
+
 // const dbConfig = {
 //   host: process.env.host,
 //   port:process.env.port,
@@ -17,6 +18,7 @@ const dbConfig = {
 //   database: process.env.local_database,
 //   connectionLimit: 1000
 // };
+
 
   const pool = mysql.createPool(dbConfig);
 
