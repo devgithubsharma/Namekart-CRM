@@ -1,10 +1,12 @@
 // import { appBarClasses } from '@mui/material';
 import axios from 'axios';
 const API_BASE_URL_LOCALHOST = 'http://localhost:3001/api';
+const API_BASE_URL_LOCALHOST_SANJEEV = 'http://localhost:9000/api';
 const API_BASE_URL_NAMEKART = "https://crmapi.namekart.com/api";
 
 const api = axios.create({
     baseURL: API_BASE_URL_NAMEKART,
+    // baseURL: API_BASE_URL_LOCALHOST_SANJEEV,
     responseType: "json",
     headers: { 
      accept: "application/json",
@@ -33,6 +35,16 @@ export const fetchCampaign = async (params) => {
         throw error.response.data;
     }
 };
+
+export const getCampaignStatus = async (campId) => {
+    try {
+      const response = await api.post('/campaignStatus', { campId });
+      return response.data.status;
+    } catch (error) {
+      console.error('Failed to fetch campaign status:', error);
+      throw error;
+    }
+  };
 
 export const deleteCampaigns = async (campId) => {
     try {

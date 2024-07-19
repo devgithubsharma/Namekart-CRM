@@ -314,11 +314,11 @@ function QuickCampaignModal({isOpen, onClose}){
     }); 
 
         const campaignData = {
-          sequenceId: sequenceToSend.id,
+          sequenceId: selectedSequence.id,
           sendersEmails: senderEmails,
           senderNames: senderNames,
           campId: campId,
-          tags_id: tags_id,
+          tags_id: selectedTag.tags_id,
           userId:userId,
           campRunningType:"quickCampaign",
           delayTimes: delayTimes,
