@@ -256,52 +256,84 @@ function QuickCampaignModal({isOpen, onClose}){
     console.log('CampId',campId)
   },[campId])
 
+  // const startCampaign = async () => {
+  //   try{
+
+  //     let cumulativeDelay = 0;
+  //     updateCampaignStatus(campId, "running");
+
+  //     for (let i = 0; i < selectedSequence.steps.length; i++) {
+  //       const step = selectedSequence.steps[i];
+
+  //       console.log(step)
+  //       const campaignData = {
+  //         receiversEmails: receiverEmails, 
+  //         sendersEmails: senderEmails,
+  //         senderNames: senderNames,
+  //         receiverName:receiverName,
+  //         leads:leads,
+  //         subject: step.subject,
+  //         pretext: step.pretext,
+  //         emailBody: step.body,
+  //         delay: cumulativeDelay, 
+  //         domains:domainNames,
+  //         campId: campId,
+  //         stepCount:i+1,
+  //         totalMailStep:selectedSequence.steps.length,
+  //         domainLinks: domainLink,
+  //         userId:userId,
+  //         campRunningType:"quickCampaign"
+  //       };
+
+  //       onClose(); 
+  //       navigate('/home/manualCampaigns', { replace: true });
+  //       // const response = await axios.post('https://crmapi.namekart.com/api/startCampaign', campaignData);
+  //       const response = await startCampaigns(campaignData)
+  //       setIsFirstEmail(false)
+  //       console.log("Response:", response);  
+  //       cumulativeDelay = step.delay;
+  //     }
+      
+  //     updateCampaignStatus(campId, "completed");
+
+  //   }catch(err){
+  //     updateCampaignStatus(campId, "interrupted");
+  //       console.error('Error in starting campaign:', err);
+  //   }
+  // };
+
   const startCampaign = async () => {
     try{
-
-      let cumulativeDelay = 0;
       updateCampaignStatus(campId, "running");
 
-      for (let i = 0; i < selectedSequence.steps.length; i++) {
-        const step = selectedSequence.steps[i];
+      const delayTimes = selectedSequence.steps.map(step => {
+        const delayInDays = step.delay;
+        const currentDate = new Date();
+        const futureDate = new Date(currentDate.setDate(currentDate.getDate() + delayInDays));
+        return futureDate;
+    }); 
 
-        console.log(step)
         const campaignData = {
-          receiversEmails: receiverEmails, 
+          sequenceId: sequenceToSend.id,
           sendersEmails: senderEmails,
           senderNames: senderNames,
-          receiverName:receiverName,
-          leads:leads,
-          subject: step.subject,
-          pretext: step.pretext,
-          emailBody: step.body,
-          delay: cumulativeDelay, 
-          domains:domainNames,
           campId: campId,
-          stepCount:i+1,
-          domainLinks: domainLink,
+          tags_id: tags_id,
           userId:userId,
-          campRunningType:"quickCampaign"
+          campRunningType:"quickCampaign",
+          delayTimes: delayTimes,
         };
 
         onClose(); 
         navigate('/home/manualCampaigns', { replace: true });
-        // const response = await axios.post('https://crmapi.namekart.com/api/startCampaign', campaignData);
         const response = await startCampaigns(campaignData)
-        setIsFirstEmail(false)
-        console.log("Response:", response);  
-        cumulativeDelay = step.delay;
-      }
       
       updateCampaignStatus(campId, "completed");
-
     }catch(err){
       updateCampaignStatus(campId, "interrupted");
         console.error('Error in starting campaign:', err);
     }
   };
-
-
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -412,11 +444,10 @@ const handleTagInputChange = (event) => {
 
   const handleSelectTag = async () =>{
     console.log(selectedTag)
-    if (selectedTag && selectedTag.title_id) {
+    if (selectedTag && selectedTag.tags_id) {
       try {
         // const response = await axios.get(`https://crmapi.namekart.com/api/getEmailsByListId/${selectedTag.title_id}/${userId}`);
-        const response = await fetchListData(selectedTag.title_id,userId)
-        console.log(response)
+        const response = await fetchListData(selectedTag.tags_id, userId);
         setReceiverEmails(response.data.emails); 
         setDomainNames(response.data.domains)
         setReceiverName(response.data.names)

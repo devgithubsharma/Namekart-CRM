@@ -1,3 +1,5 @@
+//not used in main file ..also sendingemails not used .
+
 const nodemailer = require('nodemailer');
 const dbConnection = require('./dbConnection'); 
 

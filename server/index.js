@@ -28,8 +28,8 @@ const {deleteEmails} = require('./Controllers/deleteEmailsControllers.js')
 const {getContactsLists} = require('./Controllers/getContactsListsControllers.js')
 const {getSendersEmails} = require('./Controllers/getSendersEmailsControllers.js')
 const {getListsTitle} = require('./Controllers/getListsTitleController.js');
-const {sendEmails} = require('./Controllers/sendingEmailsController.js');
-const {isValidSenderEmails} = require('./Controllers/sendingEmailsController.js');
+const {isValidSenderEmails, sendEmails} = require('./Controllers/sendingEmailsController.js');
+const {startCampaign,startStoredCampaigns,fetchCampaignStatus} = require('./Controllers/sendingEmailsMiddleware.js');
 const {deleteTags} = require('./Controllers/deleteTagsControllers.js');
 const {trackingEmails} = require('./Controllers/trackingEmailsController.js');
 const {updateEmails} = require('./Controllers/UpdateEmailsController.js');
@@ -83,7 +83,7 @@ app.post('/api/campaignsData',campaignsData);
 app.post('/api/listsData/uploadContacts',uploadContacts);
 app.get('/api/listsData/getEmails',getEmails);
 app.get('/api/receivingEmails', organizedEmailController);
-app.get("/api/getEmailsByListId/:titleId/:userId",getEmailsById);
+app.get("/api/getEmailsByListId/:tags_id/:userId",getEmailsById);
 app.get('/api/getCampaignsData/:userId',getCampaignData);
 app.delete('/api/deleteCampaign',deleteCampaign);
 app.post('/api/addEmails',addEmails);
@@ -92,7 +92,9 @@ app.delete('/api/deleteEmail/:emailToDelete',deleteEmails);
 app.get('/api/getContactList/:userId',getContactsLists);
 app.get('/api/getSenderEmails/:userId',getSendersEmails);
 app.get('/api/getListTitle/:userId',getListsTitle);
-app.post('/api/startCampaign',sendEmails);
+// app.post('/api/startCampaign',sendEmails);
+app.post('/api/startCampaign',startCampaign);
+app.post('/api/campaignStatus',fetchCampaignStatus);
 app.post('/api/isValidSenderEmails',isValidSenderEmails);
 app.delete('/api/deleteTag/:tagToDelete',deleteTags);
 app.get('/mailTrack', trackingEmails);
@@ -102,7 +104,7 @@ app.post('/api/saveSequenceDetails',saveSequenceDetails)
 app.get('/api/seqName/:campId',getSequenceNames)
 app.get('/api/seqDetails',getSequenceDetails)
 app.delete('/api/deleteSequence/:id',deleteSequence)
-app.get('/api/getDomainNames/:titleId/:userId',getDomainNames)
+app.get('/api/getDomainNames/:tags_id/:userId',getDomainNames)
 app.put('/api/updateSequenceDetails',updateSequnceDetails)
 app.get('/api/getSenderNames/:userId',getSendersNames)
 app.put('/api/updateUnsubscribeStatus/:campId/:mailId',updateUnsubscribePage)
@@ -122,7 +124,7 @@ app.delete('/api/deleteStep/:stepId/:sequenceId',deleteStep)
 app.get('/api/fetchUpdatedSequences/:sequenceId',getUpdatedSequence)
 app.get('/api/tempApi',tempApi)
 app.post('/api/uploadContactsFromDashboard',uploadContactsFromDashboard)
-app.get('/api/fetchContactsForTags/:titleId',fetchContactsForTags)
+app.get('/api/fetchContactsForTags/:tags_id',fetchContactsForTags)
 app.get('/api/getSenderEmailsForCampId/:campId',getSenderEmailsForCampId)
 app.post('/api/sendBulkEmails',sendBulkEmails)
 app.post('/api/testingRelies',processEmailConversations)
@@ -228,7 +230,16 @@ cron.schedule('*/10 * * * *', async () => {
   }
 });
 
+cron.schedule('0 23 * * *', async () => {
+  try {
+    await startStoredCampaigns();
+    console.log("startStoredCampaigns executed successfully at 23:00");
+  } catch (error) {
+    console.error("Error executing startStoredCampaigns:", error);
+  }
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
+    startStoredCampaigns();
   });
