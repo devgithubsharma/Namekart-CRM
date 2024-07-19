@@ -8,7 +8,7 @@ const {google} = require('googleapis');
 const cron = require('node-cron'); 
 // const connection = dbConnection.getConnection();
 
-const port = 9000; //3001 / 90 / 9000
+const port = 90; //3001 / 90 / 9000
 
 const { organizedEmailController } = require('./Controllers/receivingEmailsControllers.js');
 const {createList} = require('./Controllers/listsController.js')
@@ -217,18 +217,18 @@ app.get('/api/getEmailInfo',async (req,res)=>{
 // });
 
 
-// cron.schedule('*/10 * * * *', async () => {
-//   console.log('Running updateRepliesStatus every 15 seconds');
-//   const connection = await dbConnection.getConnection();
-//   try {
-//       await processEmailConversations(connection);
-//       console.log("Process completed successfully.");
-//   } catch (error) {
-//       console.error("Error during the cron job process:", error);
-//   } finally {
-//       connection.release();
-//   }
-// });
+cron.schedule('*/10 * * * *', async () => {
+  console.log('Running updateRepliesStatus every 15 seconds');
+  const connection = await dbConnection.getConnection();
+  try {
+      await processEmailConversations(connection);
+      console.log("Process completed successfully.");
+  } catch (error) {
+      console.error("Error during the cron job process:", error);
+  } finally {
+      connection.release();
+  }
+});
 
 cron.schedule('0 23 * * *', async () => {
   try {
@@ -241,5 +241,5 @@ cron.schedule('0 23 * * *', async () => {
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-    // startStoredCampaigns();
+    startStoredCampaigns();
   });
