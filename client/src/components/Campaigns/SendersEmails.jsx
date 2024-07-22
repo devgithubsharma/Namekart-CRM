@@ -111,19 +111,6 @@ function SendersEmails() {
           userId
         );
 
-<<<<<<< HEAD
-        console.log("reponse", response)
-
-        // const newEmail = {
-        //   id: response.data.sender_id,
-        //   email: email,
-        //   name: name,
-        //   accessToken: accessTokenInput,
-        //   refreshToken: refreshTokenInput,
-        // };
-=======
->>>>>>> 3ed7e4557a7db9be1f01e294ffe753f8a9024b71
-
         if (response.data.sender_id) {
           fetchData();
         }
@@ -245,7 +232,7 @@ function SendersEmails() {
           label="Email"
           variant="outlined"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value.trim())}
           style={{ marginRight: "10px", flex: 1, maxWidth: "250px" }}
         />
 
@@ -261,7 +248,7 @@ function SendersEmails() {
           label="Refresh Token"
           variant="outlined"
           value={refreshTokenInput}
-          onChange={(e) => setRefreshTokenInput(e.target.value)}
+          onChange={(e) => setRefreshTokenInput(e.target.value.trim())}
           style={{ marginRight: "10px", flex: 1, maxWidth: "200px" }}
         />
 
@@ -333,7 +320,7 @@ function SendersEmails() {
                     {editRowId === item.id ? (
                       <TextField
                         value={editedEmail}
-                        onChange={(e) => setEditedEmail(e.target.value)}
+                        onChange={(e) => setEditedEmail(e.target.value.trim())}
                         style={{ width: "100%" }}
                       />
                     ) : (
@@ -362,7 +349,7 @@ function SendersEmails() {
                     {editRowId === item.id ? (
                       <TextField
                         value={editedRefreshToken}
-                        onChange={(e) => setEditedRefreshToken(e.target.value)}
+                        onChange={(e) => setEditedRefreshToken(e.target.value.trim())}
                         style={{ width: "100%" }}
                       />
                     ) : (
