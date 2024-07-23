@@ -8,11 +8,15 @@ const startCampaign = async (req, res) => {
     const storeResponse = await storeCampaignData(campaignData);
 
     if (storeResponse.success) {
-      await startStoredCampaigns();
-      res.status(200).send({
-        message: "Campaign started and processed successfully",
-        campaignData,
-      });
+      const startResponse = await startStoredCampaigns();
+      if (startResponse.success) {
+        res.status(200).send({
+          message: "Campaign started and processed successfully",
+          campaignData,
+        });
+      } else {
+        res.status(500).send({ error: "Failed to start stored campaigns" });
+      }
     } else {
       res.status(500).send({ error: "Failed to store campaign data" });
     }
@@ -66,8 +70,10 @@ const startStoredCampaigns = async () => {
   try {
     const allCampaigns = await getAllStoredCampaignData();
     await Promise.all(allCampaigns.map(processSingleCampaign));
+    return { success: true };
   } catch (error) {
-    throw new Error("Error processing all campaigns");
+    console.error("Error processing all campaigns:", error);
+    return { success: false, error: "Error processing all campaigns" };
   }
 };
 
@@ -76,25 +82,36 @@ const processSingleCampaign = async (campaignData) => {
   let connection;
   try {
     connection = await dbConnection.getConnection();
-    const stepIdsArray = campaignData.stepIds.split(",");
-    const delayTimesArray = JSON.parse(campaignData.delayTimes);
+    
+    const stepIdsArray = campaignData.stepIds ? campaignData.stepIds.split(",") : [];
+    const delayTimesArray = campaignData.delayTimes ? JSON.parse(campaignData.delayTimes) : [];
+    const receiversEmails = campaignData.receiversEmails ? campaignData.receiversEmails.split(",") : [];
+    const domains = campaignData.domains ? campaignData.domains.split(",") : [];
+    const leads = campaignData.leads ? campaignData.leads.split(",") : [];
+    const receiverName = campaignData.receiverName ? campaignData.receiverName.split(",") : [];
+    const domainLinks = campaignData.domainLinks ? campaignData.domainLinks.split(",") : [];
+    const stepSubjects = campaignData.stepSubjects ? campaignData.stepSubjects.split("|") : [];
+    const stepPretexts = campaignData.stepPretexts ? campaignData.stepPretexts.split("|") : [];
+    const stepBodies = campaignData.stepBodies ? campaignData.stepBodies.split("|") : [];
+    const sendersEmails = campaignData.sendersEmails ? JSON.parse(campaignData.sendersEmails) : [];
+    const senderNames = campaignData.senderNames ? JSON.parse(campaignData.senderNames) : [];
 
     for (let i = campaignData.currentStep; i < stepIdsArray.length; i++) {
-      if ((delayTimesArray[i] <= Date.now()) || i==0) {
+      if ((delayTimesArray[i] <= Date.now()) || i == 0) {
         const data = {
-          receiversEmails: campaignData.receiversEmails.split(","),
-          domains: campaignData.domains.split(","),
-          leads: campaignData.leads.split(","),
-          receiverName: campaignData.receiverName.split(","),
-          domainLinks: campaignData.domainLinks.split(","),
+          receiversEmails,
+          domains,
+          leads,
+          receiverName,
+          domainLinks,
 
-          subject: campaignData.stepSubjects.split("|")[i],
-          pretext: campaignData.stepPretexts.split("|")[i],
-          body: campaignData.stepBodies.split("|")[i],
+          subject: stepSubjects[i] || '',
+          pretext: stepPretexts[i] || '',
+          body: stepBodies[i] || '',
 
           delay: delayTimesArray[i],
-          sendersEmails: JSON.parse(campaignData.sendersEmails),
-          senderNames: JSON.parse(campaignData.senderNames),
+          sendersEmails,
+          senderNames,
           campId: campaignData.campId,
           stepCount: i + 1,
           totalMailStep: stepIdsArray.length,
@@ -102,14 +119,19 @@ const processSingleCampaign = async (campaignData) => {
           campRunningType: campaignData.campRunningType,
         };
 
-        await sendEmailService(data);
+        const emailServiceResponse = await sendEmailService(data);
 
-        const updateQuery = `
-          UPDATE campaign_data
-          SET currentStep = ?
-          WHERE id = ?
-        `;
-        await connection.query(updateQuery, [i + 1, campaignData.id]);
+        if (emailServiceResponse) {
+          const updateQuery = `
+            UPDATE campaign_data
+            SET currentStep = ?
+            WHERE id = ?
+          `;
+          await connection.query(updateQuery, [i + 1, campaignData.id]);
+        } else {
+          console.error(`Failed to send emails for step ${i + 1} of campaign ${campaignData.campId}`);
+          break;
+        }
       }
     }
     if (campaignData.currentStep >= stepIdsArray.length) {
@@ -123,6 +145,7 @@ const processSingleCampaign = async (campaignData) => {
     }
   }
 };
+
 
 // Service for storing campaign data
 const storeCampaignData = async (campaignData) => {
