@@ -94,7 +94,9 @@ function Contacts() {
         console.log("Error in fetching Contacts", err);
       }
     };
+    if(selectedTags_id){
     fetchSelectedContacts();
+    }
   }, [selectedTags_id]);
 
   useEffect(() => {

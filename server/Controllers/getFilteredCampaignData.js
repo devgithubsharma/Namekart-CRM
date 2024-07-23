@@ -8,7 +8,16 @@ const getFilteredCampaignData = async (req,res) =>{
         console.log('Connection 1')
         connection = await dbConnection.getConnection();
         console.log('Connection 2')
-        const userQuery = 'Select camp_id, camp_name, title_id, camp_type from camptable where camp_type=? and userId=?';
+        const userQuery = `
+            SELECT camp_id, camp_name, title_id, camp_type, (
+            SELECT tags_id
+            FROM titles_tags
+            WHERE camptable.title_id = titles_tags.title_id
+            LIMIT 1
+            ) AS tags_id
+            FROM camptable
+            WHERE camp_type = ? AND userId = ?
+        `;      
         await connection.query(userQuery,[selectedCampaignType,userId], (err,result) =>{
             if(err){
                 console.log(err)

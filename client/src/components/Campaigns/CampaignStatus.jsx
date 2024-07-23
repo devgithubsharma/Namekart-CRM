@@ -41,6 +41,7 @@ function CampaignStatus() {
   const [campaignDetails, setCampaignDetails] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [selectedTitleId,setSelectedTitleId] = useState(null);
+  const [selectedTagId,setSelectedTagId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [csvLength,setCsvLength] = useState([]);
   const [mailSentCount,setMailSentCount] = useState(null);
@@ -98,7 +99,8 @@ const classes = useStyles();
     const fetchListsData = async () => {
       try {
         // const response = await axios.get(`https://crmapi.namekart.com/api/getEmailsByListId/${selectedTitleId}/${userId}`);
-        const response = await fetchListData(selectedTitleId,userId)
+        // const response = await fetchListData(selectedTitleId,userId)
+        const response = await fetchListData(selectedTagId,userId)
         console.log(response)
         setCsvLength(response.data.domains);
       } catch (err) {
@@ -106,7 +108,7 @@ const classes = useStyles();
       }
     };
     fetchListsData();
-  }, [selectedTitleId,tabValue,selectedCampaignType]);
+  }, [selectedTagId,selectedTitleId,tabValue,selectedCampaignType]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -183,6 +185,7 @@ useEffect(()=>{
     const clickedCampaign = campaignDetails.find(campaign => campaign.camp_name === params.row.camp_name);
     setSelectedCampaign(clickedCampaign.camp_id)
     setSelectedTitleId(clickedCampaign.title_id)
+    setSelectedTagId(clickedCampaign.tags_id)
     setIsModalOpen(true);
   };
 

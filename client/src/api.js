@@ -1,7 +1,7 @@
 // import { appBarClasses } from '@mui/material';
 import axios from 'axios';
 const API_BASE_URL_LOCALHOST = 'http://localhost:3001/api';
-const API_BASE_URL_LOCALHOST_SANJEEV = 'http://localhost:9000/api';
+const API_BASE_URL_LOCALHOST_SANJEEV = 'http://localhost:90/api';
 const API_BASE_URL_NAMEKART = "https://crmapi.namekart.com/api";
 
 const api = axios.create({
@@ -61,7 +61,7 @@ export const deleteCampaigns = async (campId) => {
 export const saveCampaign = async (campaignName,tags, titleId,userId) => {
     try {
         const response = await api.post('/campaignsData', { campaignName, tagName: tags,
-        titleId : titleId , userId:userId});
+        titleIds : titleId , userId:userId});
         return response;  
     } catch (error) {
         console.log("Error in saveCampaign",error)
@@ -215,7 +215,7 @@ export const startCampaigns = async (data) => {
 
 export const fetchSenderNamesForQuickCamp = async (params) => {
     try {
-        const response = await axios.get(`/getSenderNamesForQuickCampaign/${params}`)
+        const response = await api.get(`/getSenderNamesForQuickCampaign/${params}`)
         return response;
     } catch (error) {
         console.log("Error in fetchSenderNamesForQuickCamp",error)
