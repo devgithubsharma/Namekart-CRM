@@ -17,6 +17,7 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import SettingsSuggestOutlinedIcon from '@mui/icons-material/SettingsSuggestOutlined';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import MessageIcon from '@mui/icons-material/Message';
+import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import Namekart from './Namekart';
 import  '../style/Navbar.css'; 
 import MuiDrawer from '@mui/material/Drawer';
@@ -332,6 +333,13 @@ function Home() {
               <VerticalShadesClosedIcon />
             </ListItemIcon>
             <ListItemText primary="Closed" />
+          </ListItem>
+
+          <ListItem button onClick={()=>navigate("/privacyPolicy")}>
+            <ListItemIcon sx={{color:'#cac4d0'}}>
+              <ShieldOutlinedIcon />
+            </ListItemIcon>
+            <ListItemText primary="Privacy Policy" />
           </ListItem>
         </List>}
 
