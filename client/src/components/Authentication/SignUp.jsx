@@ -62,7 +62,7 @@ function Signup() {
             <li>Analyze campaign performance and optimize strategies</li>
           </ul>
           <p>
-            For more information, please visit our <a href="/crm/home/privacyPolicy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+            For more information, please visit our <a href="/crm/privacyPolicy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
           </p>
         </div>
       </div>

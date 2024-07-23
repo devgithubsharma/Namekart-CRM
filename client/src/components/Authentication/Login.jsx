@@ -54,7 +54,7 @@ function Login() {
             <li>Analyze campaign performance and optimize strategies</li>
           </ul>
           <p>
-            For more information, please visit our <a href="/crm/home/privacyPolicy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+            For more information, please visit our <a href="/crm/privacyPolicy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
           </p>
         </div>
       </div>
@@ -78,7 +78,7 @@ function Login() {
               required
             />
             <button type="submit">LOGIN</button>
-            <a href="/forgot-password" className="forgot-password">Forgot Password?</a>
+            <a href="#" className="forgot-password">Forgot Password?</a>
             <div className="separator">OR</div>
             <div className="signup-link">
               Need an account? <button onClick={() => navigate('/')}>SIGN UP</button>

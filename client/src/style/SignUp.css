@@ -79,9 +79,7 @@
 }
 
 .signup-form input {
-  width: 100%;
-  padding: 15px; /* Increased padding for better input field spacing */
-  margin-bottom: 15px;
+  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 30px;
 }
@@ -98,12 +96,12 @@
 
 .social-login {
   text-align: center;
-  margin: 20px 0;
+  margin: 10px 0;
 }
 
 .social-login span {
   text-align: center;
-  margin-bottom: 5px; /* Reduced margin for closer proximity */
+  margin-bottom: 4px;
 }
 
 .login-link {
@@ -113,11 +111,12 @@
 }
 
 .login-link button {
+  width: auto;
   background: none;
   color: rgba(4, 71, 4, 0.705);
   border: none;
   cursor: pointer;
-  margin-left: 5px;
+  margin: 4px;
   text-decoration: none;
   font-weight: 800;
   padding: 0;

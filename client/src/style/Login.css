@@ -12,6 +12,12 @@
     align-items: center;
     padding: 20px;
   }
+
+  .input-group {
+    display: flex;
+    padding: 10px;
+    flex-direction: column;
+  }
   
   .left-side {
     background-color: #f0f0f0;
@@ -82,9 +88,7 @@
   }
   
   .login-form input {
-    width: 100%;
     padding: 10px;
-    margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 30px;
   }
@@ -110,7 +114,7 @@
   
   .separator {
     text-align: center;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
   }
   
   .signup-link {
@@ -125,7 +129,7 @@
     color: rgba(4, 71, 4, 0.705);
     border: none;
     cursor: pointer;
-    margin-left: 5px;
+    margin: 4px;
     font-weight: 800;
     padding: 0;
   }
