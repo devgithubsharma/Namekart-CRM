@@ -217,18 +217,18 @@ app.get('/api/getEmailInfo',async (req,res)=>{
 // });
 
 
-cron.schedule('*/10 * * * *', async () => {
-  console.log('Running updateRepliesStatus every 15 seconds');
-  const connection = await dbConnection.getConnection();
-  try {
-      await processEmailConversations(connection);
-      console.log("Process completed successfully.");
-  } catch (error) {
-      console.error("Error during the cron job process:", error);
-  } finally {
-      connection.release();
-  }
-});
+// cron.schedule('*/10 * * * *', async () => {
+//   console.log('Running updateRepliesStatus every 15 seconds');
+//   const connection = await dbConnection.getConnection();
+//   try {
+//       await processEmailConversations(connection);
+//       console.log("Process completed successfully.");
+//   } catch (error) {
+//       console.error("Error during the cron job process:", error);
+//   } finally {
+//       connection.release();
+//   }
+// });
 
 cron.schedule('0 23 * * *', async () => {
   try {
