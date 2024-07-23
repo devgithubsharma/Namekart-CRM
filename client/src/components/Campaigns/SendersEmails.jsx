@@ -232,7 +232,7 @@ function SendersEmails() {
           label="Email"
           variant="outlined"
           value={email}
-          onChange={(e) => setEmail(e.target.value.trim())}
+          onChange={(e) => setEmail(e.target.value)}
           style={{ marginRight: "10px", flex: 1, maxWidth: "250px" }}
         />
 
@@ -248,7 +248,7 @@ function SendersEmails() {
           label="Refresh Token"
           variant="outlined"
           value={refreshTokenInput}
-          onChange={(e) => setRefreshTokenInput(e.target.value.trim())}
+          onChange={(e) => setRefreshTokenInput(e.target.value)}
           style={{ marginRight: "10px", flex: 1, maxWidth: "200px" }}
         />
 
@@ -320,7 +320,7 @@ function SendersEmails() {
                     {editRowId === item.id ? (
                       <TextField
                         value={editedEmail}
-                        onChange={(e) => setEditedEmail(e.target.value.trim())}
+                        onChange={(e) => setEditedEmail(e.target.value)}
                         style={{ width: "100%" }}
                       />
                     ) : (
@@ -349,7 +349,7 @@ function SendersEmails() {
                     {editRowId === item.id ? (
                       <TextField
                         value={editedRefreshToken}
-                        onChange={(e) => setEditedRefreshToken(e.target.value.trim())}
+                        onChange={(e) => setEditedRefreshToken(e.target.value)}
                         style={{ width: "100%" }}
                       />
                     ) : (
