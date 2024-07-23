@@ -1386,13 +1386,13 @@ function MailingCampaigns() {
             <button
               onClick={deleteCampaign}
               className="delete"
-              disabled={isCampaignRunning || senderSelected==0}
+              disabled={isCampaignRunning}
             >
               Delete campaign
             </button>
             <button
               onClick={startCampaign}
-              disabled={isCampaignRunning || senderSelected.length==0}
+              disabled={isCampaignRunning}
               className="start-campaign"
             >
               Start Campaign
