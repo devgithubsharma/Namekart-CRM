@@ -111,19 +111,6 @@ function SendersEmails() {
           userId
         );
 
-<<<<<<< HEAD
-        console.log("reponse", response)
-
-        // const newEmail = {
-        //   id: response.data.sender_id,
-        //   email: email,
-        //   name: name,
-        //   accessToken: accessTokenInput,
-        //   refreshToken: refreshTokenInput,
-        // };
-=======
->>>>>>> 3ed7e4557a7db9be1f01e294ffe753f8a9024b71
-
         if (response.data.sender_id) {
           fetchData();
         }

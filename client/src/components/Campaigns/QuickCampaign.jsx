@@ -48,6 +48,7 @@ function QuickCampaignModal({isOpen, onClose}){
   const [selectedFileName, setSelectedFileName] = useState('');
   const [csvData, setCsvData] = useState(null);
   const [titleId, setTitleId] = useState(null);
+  const [titleIds, setTitleIds] = useState([]);
   const [domainNames, setDomainNames] = useState([]);
   const [sequences, setSequences] = useState([]);
   const [selectedSequence, setSelectedSequence] = useState('');
@@ -433,7 +434,8 @@ const handleTagInputChange = (event) => {
     try{
         // const response = await axios.post('https://crmapi.namekart.com/api/campaignsData',{ campaignName, tagName: selectedTag.tags,
         // titleId : selectedTag.title_id, userId:userId})
-        const response = await saveCampaign(campaignName,selectedTag.tags,selectedTag.title_id,userId)
+        const response = await saveCampaign(campaignName,selectedTag.tags_id,titleIds,userId)
+        // const response = await saveCampaign(campaignName,selectedTag.tags,selectedTag.title_id,userId)
         console.log(response.data.camp_id)
         setCampId(response.data.camp_id)
     }catch(err){
@@ -477,6 +479,7 @@ const handleTagInputChange = (event) => {
     const selectedValue = e.target.value;
     const selectedTagObject = fetchedTags.find(tag => tag.tags === selectedValue) || {};
     setSelectedTag(selectedTagObject);
+    setTitleIds(selectedTagObject.title_ids);
   };
 
 
