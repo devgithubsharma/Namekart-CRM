@@ -4,6 +4,10 @@
   font-family: 'Nunito Sans', sans-serif;
 }
 
+body {
+  margin: 0px;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
