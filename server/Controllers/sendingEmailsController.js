@@ -550,8 +550,10 @@ const sendEmailService = async (req) => {
       }
     // });
     console.log("good");
+    return true;
   } catch (err) {
     console.error("Error in email Campaigning:", err);
+    throw new Error("Error in email Campaigning");
   } finally {
     if (connection) {
       connection.release();

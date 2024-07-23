@@ -5,8 +5,16 @@ const getCampaignData = async (req,res) =>{
     let connection;
     try{
         connection = await dbConnection.getConnection();
-        console.log('Connection 2')
-        const userQuery = 'Select camp_id, camp_name, title_id, tags_id from camptable where userId=?';
+        const userQuery = `
+            SELECT camp_id, camp_name, title_id, camp_type, (
+            SELECT tags_id
+            FROM titles_tags
+            WHERE camptable.title_id = titles_tags.title_id
+            LIMIT 1
+            ) AS tags_id
+            FROM camptable
+            WHERE userId = ?
+        `;
         await connection.query(userQuery,[userId], (err,result) =>{
             if(err){
                 console.log(err)
