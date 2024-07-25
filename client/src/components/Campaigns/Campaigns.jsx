@@ -303,7 +303,7 @@ const rows = [...campaigns].reverse().map((campaign,index) => ({
             </div>
             <div className="campaign-actions"> 
               <button className="cancel-button" onClick={handleCancel}>Cancel</button>
-              <button className="create-button" onClick={handleContinue}>Create campaign</button>
+              <button className="create-button" disabled={!selectedTag.tags} onClick={handleContinue}>Create campaign</button>
             </div>
           </div>
         )}

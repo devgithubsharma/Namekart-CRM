@@ -7,7 +7,7 @@ const OAuth2Callback = () => {
 
   const clientId = "779579592103-36umoki6urjdtqhicvho4mh1qrvvmi8t.apps.googleusercontent.com"
   const clientSecret = "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"
-  const redirectUri = "http://localhost:3000/oauth2callback"
+  const redirectUri = "http://localhost:3000/crm/oauth2callback"
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

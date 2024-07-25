@@ -203,7 +203,7 @@ function Home() {
             <IconButton
             size='large'
             edge="start"
-            onClick={()=>{navigate('/home/notifications')}}
+            onClick={()=>{navigate('#')}}
             aria-label="menu"
             sx={{ mr: 1, color:"#6174D7" }}
             
