@@ -54,7 +54,7 @@ function Login() {
             <li>Analyze campaign performance and optimize strategies</li>
           </ul>
           <p>
-            For more information, please visit our <a href="/crm/privacyPolicy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+            For more information, please visit our <a href="/crm/privacyPolicy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="/crm/termsAndServices" target="_blank" rel="noopener noreferrer">Terms of Services</a>.
           </p>
         </div>
       </div>
