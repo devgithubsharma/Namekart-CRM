@@ -56,7 +56,7 @@ const PrivacyPolicy = () => (
     <div style={styles.body}>
       <h1 style={styles.h1}>Privacy Policy</h1>
 
-      <p><strong>Effective Date:</strong> July 19, 2024</p>
+      <p><strong>Effective Date:</strong> July 26, 2024</p>
 
       <p>
         Namekart Private Limited ("we," "our," or "us") is committed to protecting the privacy of our employees who use our Customer Relationship Management (CRM) website ("Service"). This Privacy Policy explains how we collect, use, and safeguard your information when you use our Service, including the sensitive use of Google Mail services for email campaigns.
@@ -196,15 +196,32 @@ const PrivacyPolicy = () => (
       </ul>
 
       <h3 id="dispute" style={styles.h3}>8. Dispute Resolution</h3>
-      <p style={styles.p}>If you have any complaints regarding our privacy practices, please contact us. We will work with you to resolve your concerns.</p>
+      <p style={styles.p}>
+        If you have any questions or concerns about our use of your personal information, please contact us at tech@namekart.com. We will do our best to address and resolve your concerns.
+      </p>
+
+      <p style={styles.p}>
+        If you believe that we have not been able to resolve your concerns, you may contact your local data protection authority. We commit to cooperating with the authorities and complying with the decisions and directives of the relevant authorities.
+        Any disputes arising out of or relating to this Privacy Policy shall be resolved through binding arbitration in accordance with the rules of the Indian Council of Arbitration. The arbitration shall take place in Delhi, India, and the decision of the arbitrator shall be final and binding.
+      </p>
+
+      <p style={styles.p}>
+        Please note that if you are a resident of the European Economic Area (EEA), you have the right to lodge a complaint with your local data protection authority.
+      </p>
 
       <h3 id="changes" style={styles.h3}>9. Notice of Changes</h3>
-      <p style={styles.p}>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on our Website and updating the "Effective Date" above. Your continued use of our Services after any changes indicates your acceptance of the updated Privacy Policy.</p>
+      <p style={styles.p}>
+        We may update this Privacy Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons. We will notify you of any significant changes by posting the new Privacy Policy on this page and updating the "Effective Date" at the top of this policy.
+      </p>
+
+      <p style={styles.p}>
+        You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.
+      </p>
 
       <h3 id="contact" style={styles.h3}>10. Contacting Namekart</h3>
       <p style={styles.p}>If you have any questions about this Privacy Policy or our privacy practices, please contact us at:</p>
       <p style={styles.p}><strong>Email:</strong> tech@namekart.com</p>
-      <p style={styles.p}><strong>Address:</strong> Namekart Private Limited, 123 Main Street, Anytown, USA</p>
+      <p style={styles.p}><strong>Address:</strong> Namekart Private Limited, sector-50, Noida, UP</p>
 
       <p style={styles.p}>Thank you for using Namekart CRM. We are committed to protecting your privacy and providing you with a safe and secure experience.</p>
     </div>

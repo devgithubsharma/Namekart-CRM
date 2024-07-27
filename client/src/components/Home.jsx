@@ -18,6 +18,7 @@ import SettingsSuggestOutlinedIcon from '@mui/icons-material/SettingsSuggestOutl
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import MessageIcon from '@mui/icons-material/Message';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import GavelIcon from '@mui/icons-material/Gavel';
 import Namekart from './Namekart';
 import  '../style/Navbar.css'; 
 import MuiDrawer from '@mui/material/Drawer';
@@ -203,7 +204,7 @@ function Home() {
             <IconButton
             size='large'
             edge="start"
-            onClick={()=>{navigate('/home/notifications')}}
+            onClick={()=>{navigate('#')}}
             aria-label="menu"
             sx={{ mr: 1, color:"#6174D7" }}
             
@@ -340,6 +341,13 @@ function Home() {
               <ShieldOutlinedIcon />
             </ListItemIcon>
             <ListItemText primary="Privacy Policy" />
+          </ListItem>
+
+          <ListItem button onClick={()=>navigate("/termsAndServices")}>
+            <ListItemIcon sx={{color:'#cac4d0'}}>
+              <GavelIcon />
+            </ListItemIcon>
+            <ListItemText primary="Terms Of Services" />
           </ListItem>
         </List>}
 

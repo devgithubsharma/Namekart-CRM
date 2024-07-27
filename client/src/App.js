@@ -45,8 +45,8 @@ function App() {
         <Route path="/home/receivingEmails" element={<ReceivingEmail/>} />
         <Route path='/home/userEmails' exact element={<AuthenticatedRoute><SendersEmails/></AuthenticatedRoute>}/>
         <Route path="/home/chats/:threadId" element={<ChatBox/>} />
-        <Route path="/home/termsAndServices" element={<TermsAndServices/>} />
       </Route>
+      <Route path="/termsAndServices" element={<TermsAndServices/>} />
       <Route path="/privacyPolicy" element={<PrivacyPolicy/>} />
       <Route path="/oauth2callback" element={<OAuth2Callback/>} />
       <Route path='/unsubscribe/:campId/:mailId' element={<UnSubscribePage/>}></Route>

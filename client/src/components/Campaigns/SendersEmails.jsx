@@ -12,6 +12,7 @@ import {
   Typography,
   Paper,
 } from "@mui/material";
+import GoogleIcon from '@mui/icons-material/Google';
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
@@ -27,6 +28,13 @@ import {
   fetchSenderEmailsDetails,
   updateSenderEmail,
 } from "../../api";
+
+const MaskedToken = ({ token }) => {
+  const visibleStart = token.slice(0, 6);
+  const visibleEnd = token.slice(-4);
+  const masked = `${visibleStart}*********************${visibleEnd}`;
+  return masked;
+};
 
 function SendersEmails() {
   const [email, setEmail] = useState("");
@@ -48,7 +56,7 @@ function SendersEmails() {
   const location = useLocation();
 
   const clientId = "779579592103-36umoki6urjdtqhicvho4mh1qrvvmi8t.apps.googleusercontent.com"
-  const redirectUri = "http://localhost:3000/oauth2callback"
+  const redirectUri = "http://localhost:3000/crm/oauth2callback"
   const scope = 'https://mail.google.com/'
 
   useEffect(() => {
@@ -252,25 +260,6 @@ function SendersEmails() {
           style={{ marginRight: "10px", flex: 1, maxWidth: "200px" }}
         />
 
-        {/* <Button
-          variant="contained"
-          color="primary"
-          onClick={handleGoogleAuth}
-          onMouseEnter={handleMouseEnter2}
-          onMouseLeave={handleMouseLeave2}
-          style={{
-            height: "40px",
-            maxWidth: "150px",
-            borderRadius: "15px",
-            marginRight: "10px",
-            backgroundColor: refreshTokenInput ? "grey" : isHovered2 ? "grey" : "black",
-            color: "white",
-          }}
-          disabled={refreshTokenInput}
-        >
-          Get Token
-        </Button> */}
-
         <Button
           variant="contained"
           color="primary"
@@ -280,34 +269,55 @@ function SendersEmails() {
           style={{
             height: "40px",
             maxWidth: "150px",
+            marginRight: "10px",
             borderRadius: "15px",
-            backgroundColor: (!refreshTokenInput || !email || !name) ? "grey"
-              : isHovered1 ? "grey" : "black",
+            backgroundColor: (!refreshTokenInput || !email || !name) ? "darkgrey" : isHovered1 ? "lightgrey" : "grey",
             color: "white",
           }}
           disabled={!refreshTokenInput || !email || !name}
         >
           Add Details
         </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleGoogleAuth}
+          onMouseEnter={handleMouseEnter2}
+          onMouseLeave={handleMouseLeave2}
+          style={{
+            height: "40px",
+            borderRadius: "15px",
+            backgroundColor: refreshTokenInput ? "darkgrey" : isHovered2 ? "lightgrey" : "grey",
+            color: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          disabled
+          // disabled={refreshTokenInput}
+        >
+          <GoogleIcon style={{ marginRight: "8px" }} />
+          Get Google Token
+        </Button>
       </div>
 
       <TableContainer component={Paper}>
         <Table size="small" aria-label="a dense table">
-          <TableHead style={{ backgroundColor: "#1976d2" }}>
+          <TableHead sx={{ backgroundColor: "#1976d2" }}>
             <TableRow>
-              <TableCell style={{ fontWeight: "600", width: "20%" }}>
+              <TableCell sx={{ fontWeight: "600", width: "20%" }}>
                 Email
               </TableCell>
-              <TableCell style={{ fontWeight: "600", width: "20%" }}>
+              <TableCell sx={{ fontWeight: "600", width: "20%" }}>
                 Name
               </TableCell>
-              <TableCell style={{ fontWeight: "600", width: "20%" }}>
+              <TableCell sx={{ fontWeight: "600", width: "10%" }}>
                 Active
               </TableCell>
-              <TableCell style={{ fontWeight: "600", width: "20%" }}>
+              <TableCell sx={{ fontWeight: "600", width: "30%" }}>
                 Refresh Token
               </TableCell>
-              <TableCell style={{ fontWeight: "600", width: "20%" }}>
+              <TableCell sx={{ fontWeight: "600", width: "20%" }}>
                 Actions
               </TableCell>
             </TableRow>
@@ -316,47 +326,47 @@ function SendersEmails() {
             {emails.map((item) =>
               item.email ? (
                 <TableRow key={item.id}>
-                  <TableCell style={{ width: "20%" }}>
+                  <TableCell sx={{ width: "20%" }}>
                     {editRowId === item.id ? (
                       <TextField
                         value={editedEmail}
                         onChange={(e) => setEditedEmail(e.target.value.trim())}
-                        style={{ width: "100%" }}
+                        sx={{ width: "100%" }}
                       />
                     ) : (
                       item.email
                     )}
                   </TableCell>
-                  <TableCell style={{ width: "20%" }}>
+                  <TableCell sx={{ width: "20%" }}>
                     {editRowId === item.id ? (
                       <TextField
                         value={editedName}
                         onChange={(e) => setEditedName(e.target.value)}
-                        style={{ width: "100%" }}
+                        sx={{ width: "100%" }}
                       />
                     ) : (
                       item.name
                     )}
                   </TableCell>
-                  <TableCell style={{ width: "20%" }}>
+                  <TableCell sx={{ width: "10%" }}>
                     {item.isActive ? (
-                      <CheckIcon style={{ color: "green" }} />
+                      <CheckIcon sx={{ color: "green" }} />
                     ) : (
-                      <CloseIcon style={{ color: "red" }} />
+                      <CloseIcon sx={{ color: "red" }} />
                     )}
                   </TableCell>
-                  <TableCell style={{ width: "20%" }}>
+                  <TableCell sx={{ width: "30%" }}>
                     {editRowId === item.id ? (
                       <TextField
                         value={editedRefreshToken}
                         onChange={(e) => setEditedRefreshToken(e.target.value.trim())}
-                        style={{ width: "100%" }}
+                        sx={{ width: "100%" }}
                       />
                     ) : (
-                      item.refreshToken
+                      <MaskedToken token={item.refreshToken} />
                     )}
                   </TableCell>
-                  <TableCell style={{ width: "20%" }}>
+                  <TableCell sx={{ width: "20%" }}>
                     {editRowId === item.id ? (
                       <>
                         <IconButton onClick={handleSaveChanges}>
