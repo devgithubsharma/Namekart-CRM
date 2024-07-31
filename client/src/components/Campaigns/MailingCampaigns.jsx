@@ -1386,7 +1386,6 @@ function MailingCampaigns() {
             <button
               onClick={deleteCampaign}
               className="delete"
-              disabled={isCampaignRunning || senderSelected==0}
             >
               Delete campaign
             </button>
