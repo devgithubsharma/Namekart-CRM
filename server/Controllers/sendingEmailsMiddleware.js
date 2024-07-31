@@ -8,7 +8,7 @@ const startCampaign = async (req, res) => {
     const storeResponse = await storeCampaignData(campaignData);
 
     if (storeResponse.success) {
-      const startResponse = await startStoredCampaigns();
+      const startResponse = await startStoredUserCampaigns(campaignData.userId);
       if (startResponse.success) {
         res.status(200).send({
           message: "Campaign started and processed successfully",
@@ -64,6 +64,18 @@ const fetchCampaignStatus = async (req, res) => {
 };
 
 /////////////////////////SERVICES//////////////////////////////////
+
+// Service to start all pending campaigns of user in parallel
+const startStoredUserCampaigns = async (userId) => {
+  try {
+    const allCampaigns = await getAllStoredCampaignData(userId);
+    await Promise.all(allCampaigns.map(processSingleCampaign));
+    return { success: true };
+  } catch (error) {
+    console.error("Error processing all campaigns:", error);
+    return { success: false, error: "Error processing all campaigns" };
+  }
+};
 
 // Service to start all pending campaigns in parallel
 const startStoredCampaigns = async () => {
@@ -204,10 +216,11 @@ const storeCampaignData = async (campaignData) => {
 };
 
 // Service to get all stored campaign data
-const getAllStoredCampaignData = async () => {
+const getAllStoredCampaignData = async (userId) => {
   let connection;
   try {
     connection = await dbConnection.getConnection();
+    const userCondition = userId ? 'WHERE campaign_data.userId = ?' : '';
 
     const query1 = `
       SELECT
@@ -224,6 +237,7 @@ const getAllStoredCampaignData = async () => {
           titles_tags ON campaign_data.tags_id = titles_tags.tags_id
       JOIN
           listsdata ON titles_tags.title_id = listsdata.title_id
+      ${userCondition}
       GROUP BY
           campaign_data.id
     `;
@@ -240,6 +254,7 @@ const getAllStoredCampaignData = async () => {
           campaign_data
       JOIN 
           steps ON campaign_data.sequenceId = steps.sequenceId
+      ${userCondition}
       GROUP BY 
           campaign_data.id
     `;
@@ -247,7 +262,7 @@ const getAllStoredCampaignData = async () => {
     // Running both queries asynchronously
     const [results1, results2] = await Promise.all([
       new Promise((resolve, reject) => {
-        connection.query(query1, (error, results) => {
+        connection.query(query1, userId ? [userId] : [], (error, results) => {
           if (error) {
             reject(
               new Error(
@@ -260,7 +275,7 @@ const getAllStoredCampaignData = async () => {
         });
       }),
       new Promise((resolve, reject) => {
-        connection.query(query2, (error, results) => {
+        connection.query(query2, userId ? [userId] : [], (error, results) => {
           if (error) {
             reject(
               new Error("Error fetching campaign steps data: " + error.message)
