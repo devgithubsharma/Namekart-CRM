@@ -48,6 +48,7 @@ function ChatBox() {
 
         fetchChat();
     }, [threadId]);
+    
 
     const handleBackClick = () => {
         navigate("/home/chattingMessages"); // Navigate back to the chatting messages page
