@@ -18,14 +18,15 @@ import ChatBox from './components/ChatBox';
 import Signup from './components/Authentication/SignUp';
 import Login from './components/Authentication/Login';
 import AuthenticatedRoute from './components/AuthenticatedRoute';
-import TermsAndServices from './components/TermsAndServices';
-import PrivacyPolicy from './components/PrivacyPolicy';
 import OAuth2Callback from './components/OAuth2Callback';
 
+import TermsAndServices from './pages/policies/TermsAndServices';
+import PrivacyPolicy from './pages/policies/PrivacyPolicy';
 
-
-// import { LocalizationProvider } from '@mui/x-date-pickers';
-// import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import ManualMail from './pages/messages/ManualMail';
+import BulkMail from './pages/messages/BulkMail';
+import LiveDetectMail from './pages/messages/LiveDetectMail';
+import CampMailDetails from './components/messages/CampMailDetails';
 
 function App() {
   return (
@@ -45,6 +46,11 @@ function App() {
         <Route path="/home/receivingEmails" element={<ReceivingEmail/>} />
         <Route path='/home/userEmails' exact element={<AuthenticatedRoute><SendersEmails/></AuthenticatedRoute>}/>
         <Route path="/home/chats/:threadId" element={<ChatBox/>} />
+
+        {/* <Route path="/home/messages/manualmail/camp/:campId" element={<CampMailDetails/>} /> */}
+        <Route path='/home/messages/manualmail' exact element={<AuthenticatedRoute><ManualMail/></AuthenticatedRoute>}/>
+        <Route path='/home/messages/bulkmail' exact element={<AuthenticatedRoute><BulkMail/></AuthenticatedRoute>}/>
+        <Route path='/home/messages/livedetectmail' exact element={<AuthenticatedRoute><LiveDetectMail/></AuthenticatedRoute>}/>
       </Route>
       <Route path="/termsAndServices" element={<TermsAndServices/>} />
       <Route path="/privacyPolicy" element={<PrivacyPolicy/>} />
