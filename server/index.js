@@ -209,21 +209,21 @@ app.get('/api/getEmailInfo',async (req,res)=>{
   }
 })
 
-// Schedule to run every 10 minutes
-cron.schedule('*/10 * * * *', async () => {
-  console.log('Running updateRepliesStatus and save replies to db every 10 minutes');
-  const connection = await dbConnection.getConnection();
-  try {
-      await processEmailConversations(connection);
-    console.log("Process completed successfully.");
-  } catch (error) {
-    console.error("Error during the cron job process:", error);
-  } finally {
-    connection.release();
-  }
-});
+// // Schedule to run every 10 minutes
+// cron.schedule('*/10 * * * *', async () => {
+//   console.log('Running updateRepliesStatus and save replies to db every 10 minutes');
+//   const connection = await dbConnection.getConnection();
+//   try {
+//       await processEmailConversations(connection);
+//     console.log("Process completed successfully.");
+//   } catch (error) {
+//     console.error("Error during the cron job process:", error);
+//   } finally {
+//     connection.release();
+//   }
+// });
 
-cron.schedule('0 23 * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
   try {
     await startStoredCampaigns();
     console.log("startStoredCampaigns executed successfully at 23:00");

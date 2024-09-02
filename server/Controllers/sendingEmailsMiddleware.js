@@ -1,4 +1,5 @@
 const dbConnection = require("../dbConnection");
+const schedule = require('node-schedule');
 const { sendEmailService } = require("./sendingEmailsController.js");
 
 // Controller to start the campaign
@@ -107,6 +108,8 @@ const processSingleCampaign = async (campaignData) => {
     const stepBodies = campaignData.stepBodies ? campaignData.stepBodies.split("|") : [];
     const sendersEmails = campaignData.sendersEmails ? JSON.parse(campaignData.sendersEmails) : [];
     const senderNames = campaignData.senderNames ? JSON.parse(campaignData.senderNames) : [];
+    const interval_from = campaignData.interval_from;
+    const interval_to = campaignData.interval_to;
 
     for (let i = campaignData.currentStep; i < stepIdsArray.length; i++) {
       if ((delayTimesArray[i] <= Date.now()) || i == 0) {
@@ -131,6 +134,7 @@ const processSingleCampaign = async (campaignData) => {
           campRunningType: campaignData.campRunningType,
         };
 
+        console.log("replicated request body of client",data);
         const emailServiceResponse = await sendEmailService(data);
 
         if (emailServiceResponse) {
@@ -159,16 +163,152 @@ const processSingleCampaign = async (campaignData) => {
 };
 
 
+// const processSingleCampaign = async (campaignData) => {
+//   let connection;
+//   try {
+//     connection = await dbConnection.getConnection();
+    
+//     const stepIdsArray = campaignData.stepIds ? campaignData.stepIds.split(",") : [];
+//     const delayTimesArray = campaignData.delayTimes ? JSON.parse(campaignData.delayTimes) : [];
+//     const receiversEmails = campaignData.receiversEmails ? campaignData.receiversEmails.split(",") : [];
+//     const domains = campaignData.domains ? campaignData.domains.split(",") : [];
+//     const leads = campaignData.leads ? campaignData.leads.split(",") : [];
+//     const receiverName = campaignData.receiverName ? campaignData.receiverName.split(",") : [];
+//     const domainLinks = campaignData.domainLinks ? campaignData.domainLinks.split(",") : [];
+//     const stepSubjects = campaignData.stepSubjects ? campaignData.stepSubjects.split("|") : [];
+//     const stepPretexts = campaignData.stepPretexts ? campaignData.stepPretexts.split("|") : [];
+//     const stepBodies = campaignData.stepBodies ? campaignData.stepBodies.split("|") : [];
+//     const sendersEmails = campaignData.sendersEmails ? JSON.parse(campaignData.sendersEmails) : [];
+//     const senderNames = campaignData.senderNames ? JSON.parse(campaignData.senderNames) : [];
+    
+//     // Extract interval_from and interval_to from the campaign data
+//     const intervalFrom = campaignData.interval_from;
+//     const intervalTo = campaignData.interval_to;
+
+//     for (let i = campaignData.currentStep; i < stepIdsArray.length; i++) {
+//       const delayTime = new Date(delayTimesArray[i]);
+//       const now = new Date();
+
+//       if (delayTime < now) {
+//         // Immediate email sending
+//         const data = {
+//           receiversEmails,
+//           domains,
+//           leads,
+//           receiverName,
+//           domainLinks,
+
+//           subject: stepSubjects[i] || '',
+//           pretext: stepPretexts[i] || '',
+//           body: stepBodies[i] || '',
+
+//           delay: delayTimesArray[i],
+//           sendersEmails,
+//           senderNames,
+//           campId: campaignData.campId,
+//           stepCount: i + 1,
+//           totalMailStep: stepIdsArray.length,
+//           userId: campaignData.userId,
+//           campRunningType: campaignData.campRunningType,
+//         };
+
+//         const emailServiceResponse = await sendEmailService(data);
+
+//         if (emailServiceResponse) {
+//           const updateQuery = `
+//             UPDATE campaign_data
+//             SET currentStep = ?
+//             WHERE id = ?
+//           `;
+//           await connection.query(updateQuery, [i + 1, campaignData.id]);
+//         } else {
+//           console.error(`Failed to send emails for step ${i + 1} of campaign ${campaignData.campId}`);
+//           break;
+//         }
+//       } else if (
+//         delayTime > now && 
+//         delayTime.toDateString() === now.toDateString()
+//       ) {
+//         const [hourFrom, minuteFrom] = intervalFrom.split(':');
+//         const [hourTo, minuteTo] = intervalTo.split(':');
+
+//         const scheduleDateFrom = new Date();
+//         scheduleDateFrom.setHours(hourFrom, minuteFrom, 0, 0);
+
+//         const scheduleDateTo = new Date();
+//         scheduleDateTo.setHours(hourTo, minuteTo, 0, 0);
+
+//         const scheduleEmailJob = schedule.scheduleJob(scheduleDateFrom, async () => {
+//           if (new Date() < scheduleDateTo) {
+//             try {
+//               const data = {
+//                 receiversEmails,
+//                 domains,
+//                 leads,
+//                 receiverName,
+//                 domainLinks,
+
+//                 subject: stepSubjects[i] || '',
+//                 pretext: stepPretexts[i] || '',
+//                 body: stepBodies[i] || '',
+
+//                 delay: delayTimesArray[i],
+//                 sendersEmails,
+//                 senderNames,
+//                 campId: campaignData.campId,
+//                 stepCount: i + 1,
+//                 totalMailStep: stepIdsArray.length,
+//                 userId: campaignData.userId,
+//                 campRunningType: campaignData.campRunningType,
+//               };
+
+//               const emailServiceResponse = await sendEmailService(data);
+
+//               if (emailServiceResponse) {
+//                 const updateQuery = `
+//                   UPDATE campaign_data
+//                   SET currentStep = ?
+//                   WHERE id = ?
+//                 `;
+//                 await connection.query(updateQuery, [i + 1, campaignData.id]);
+//               } else {
+//                 console.error(`Failed to send scheduled emails for step ${i + 1} of campaign ${campaignData.campId}`);
+//               }
+//             } catch (error) {
+//               console.error(`Error during scheduled email sending: ${error.message}`);
+//             }
+//           } else {
+//             console.warn(`Scheduled time exceeded interval_to for step ${i + 1} of campaign ${campaignData.campId}`);
+//           }
+//         });
+//         break; // Exit the loop as we're scheduling the job for later today
+//       }
+//     }
+
+//     if (campaignData.currentStep >= stepIdsArray.length) {
+//       await deleteCampaignData(campaignData.id);
+//     }
+//   } catch (error) {
+//     throw new Error(`Error processing campaign with ID ${campaignData.campId}: ${error.message}`);
+//   } finally {
+//     if (connection) {
+//       connection.release();
+//     }
+//   }
+// };
+
+
 // Service for storing campaign data
 const storeCampaignData = async (campaignData) => {
   let connection;
   try {
     connection = await dbConnection.getConnection();
 
-    const insertQuery = `
+    // Insert campaign data into campaign_data table
+    const insertCampaignQuery = `
       INSERT INTO campaign_data (
-         sendersEmails, senderNames, campId, userId, currentStep, campRunningType, tags_id, sequenceId, delayTimes
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+         sendersEmails, senderNames, campId, userId, currentStep, campRunningType, tags_id, sequenceId, delayTimes, firstmail_date, interval_from, interval_to 
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const sendersEmails = JSON.stringify(campaignData.sendersEmails || []);
@@ -180,10 +320,13 @@ const storeCampaignData = async (campaignData) => {
     const tags_id = campaignData.tags_id || null;
     const sequenceId = campaignData.sequenceId || null;
     const campRunningType = campaignData.campRunningType || "";
+    const firstmail_date = campaignData?.firstmail_date || '2020-01-01';
+    const interval_from = campaignData?.interval_from || '00:00';
+    const interval_to = campaignData?.interval_to || '00:00';
 
     return new Promise((resolve, reject) => {
       connection.query(
-        insertQuery,
+        insertCampaignQuery,
         [
           sendersEmails,
           senderNames,
@@ -194,12 +337,49 @@ const storeCampaignData = async (campaignData) => {
           tags_id,
           sequenceId,
           delayTimes,
+          firstmail_date,
+          interval_from,
+          interval_to
         ],
         (error, results) => {
           if (error) {
             console.error("Error inserting campaign data:", error.message);
             reject(new Error("Error inserting campaign data"));
           } else {
+            const campaignId = results.insertId;
+
+            // Insert scheduling data into scheduledCamp table
+            const insertSchedulingData = () => {
+              const schedulingData = campaignData.schedulingData || [];
+
+              schedulingData.forEach((schedule) => {
+                const day = schedule.day || "";
+                const intervals = schedule.intervals || [];
+
+                intervals.forEach((interval) => {
+                  const fromTime = interval.from || null;
+                  const toTime = interval.to || null;
+
+                  const insertScheduledCampQuery = `
+                    INSERT INTO scheduledCamp (campaign_data_id, day, from_time, to_time)
+                    VALUES (?, ?, ?, ?)
+                  `;
+
+                  connection.query(
+                    insertScheduledCampQuery,
+                    [campaignId, day, fromTime, toTime],
+                    (error) => {
+                      if (error) {
+                        console.error("Error inserting scheduling data:", error.message);
+                        reject(new Error("Error inserting scheduling data"));
+                      }
+                    }
+                  );
+                });
+              });
+            };
+
+            //insertSchedulingData();
             resolve({ success: true });
           }
         }

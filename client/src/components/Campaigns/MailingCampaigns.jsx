@@ -63,6 +63,7 @@ import { deleteCampaigns } from "../../api";
 import { startCampaigns } from "../../api";
 import { fetchSenderEmailsDetails } from "../../api";
 import { getCampaignStatus } from "../../api";
+import CampScheduling from "./CampScheduling";
 
 const useStyles = makeStyles({
   tab: {
@@ -150,6 +151,7 @@ function MailingCampaigns() {
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [senderEmails, setSenderEmails] = useState([]);
   const [senderSelected, setSenderSelected] = useState([]);
+  const [schedulingData, setSchedulingData] = useState([]);
   const [confirmedTag, setConfirmedTag] = useState(null);
   const [tags, setTags] = useState([]);
   const [selectedTag, setSelectedTag] = useState(null);
@@ -1112,7 +1114,7 @@ function MailingCampaigns() {
       renderCell: (params) => (params.value ? 'Yes' : 'No'),
     },
   ];
-  
+
 
   const rows2 = senderEmails.map((emailObj, index) => ({
     id: index,
@@ -1268,9 +1270,9 @@ function MailingCampaigns() {
 
   // const startCampaign = async () => {
   //   try {
-      // const sequenceToSend = sequences.find(
-      //   (seq) => seq.id === activeSequenceTab
-      // );
+  // const sequenceToSend = sequences.find(
+  //   (seq) => seq.id === activeSequenceTab
+  // );
   //     let cumulativeDelay = 0;
   //     updateCampaignStatus(campId, "running");
 
@@ -1312,6 +1314,30 @@ function MailingCampaigns() {
   //   }
   // };
 
+  const calculateDateForDay = (day) => {
+    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const targetDayIndex = daysOfWeek.indexOf(day);
+    const currentDate = new Date();
+    const currentDayIndex = currentDate.getDay();
+
+    let daysUntilNextTargetDay = targetDayIndex - currentDayIndex;
+    if (daysUntilNextTargetDay < 0) {
+      daysUntilNextTargetDay += 7; // Go to next week's target day
+    }
+
+    const nextTargetDate = new Date(currentDate.setDate(currentDate.getDate() + daysUntilNextTargetDay));
+    return nextTargetDate;
+  };
+
+  const formatDateAsYYYYMMDD = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const dayOfMonth = String(date.getDate()).padStart(2, '0');
+  
+    return `${year}-${month}-${dayOfMonth}`;
+  };
+  
+
   const startCampaign = async () => {
     try {
       updateCampaignStatus(campId, "running");
@@ -1319,25 +1345,37 @@ function MailingCampaigns() {
         (seq) => seq.id === activeSequenceTab
       );
 
+      let cumulativeDelay = 0;
+      let baseDate;
       const delayTimes = sequenceToSend.steps.map(step => {
-        const delayInDays = step.delay;
-        const currentDate = new Date();
-        const futureDate = new Date(currentDate.setDate(currentDate.getDate() + delayInDays));
-        return futureDate;
-    });    
+        const delayInDays = cumulativeDelay;
+        cumulativeDelay = delayInDays + step.delay;
+        if (schedulingData && schedulingData.length > 0) {
+          baseDate = calculateDateForDay(schedulingData[0].day);
+        } else {
+          baseDate = new Date();
+        }
 
-        const campaignData = {
-          sequenceId: sequenceToSend.id,
-          sendersEmails: senderSelected,//array of string
-          senderNames: senderNames,//array of object
-          campId: campId,//integer
-          tags_id: tags_id,//integer
-          userId: userId,//string
-          campRunningType: "simpleCampaign",//string
-          delayTimes: delayTimes, //array of date
-        };
-        navigate("/home/manualCampaigns", { replace: true });
-        const response = await startCampaigns(campaignData);
+        const futureDate = new Date(baseDate.setDate(baseDate.getDate() + delayInDays));
+        return futureDate;
+      });
+
+      const campaignData = {
+        sequenceId: sequenceToSend.id,
+        sendersEmails: senderSelected,//array of string
+        senderNames: senderNames,//array of object
+        campId: campId,//integer
+        tags_id: tags_id,//integer
+        userId: userId,//string
+        campRunningType: "simpleCampaign",//string
+        delayTimes: delayTimes, //array of date
+        schedulingData: schedulingData, //array of date
+        firstmail_date: schedulingData[0]?.day ? formatDateAsYYYYMMDD(calculateDateForDay(schedulingData[0].day)) : '2020-01-01',
+        interval_from: schedulingData[0]?.intervals[0]?.from || '00:00', //campaign time interval
+        interval_to: schedulingData[0]?.intervals[0]?.to || '00:00', //campaign time interval
+      };
+      navigate("/home/manualCampaigns", { replace: true });
+      const response = await startCampaigns(campaignData);
 
       updateCampaignStatus(campId, "completed");
     } catch (err) {
@@ -1391,7 +1429,7 @@ function MailingCampaigns() {
             </button>
             <button
               onClick={startCampaign}
-              disabled={isCampaignRunning || senderSelected==0}
+              disabled={isCampaignRunning || senderSelected == 0}
               className="start-campaign"
             >
               Start Campaign
@@ -1670,7 +1708,8 @@ function MailingCampaigns() {
             </TabPanel>
 
             <TabPanel value="3">
-              <div className="schedule-contanier">
+              <CampScheduling setSchedulingData={setSchedulingData} />
+              {/* <div className="schedule-contanier">
                 <h2>Select schedule settings</h2>
 
                 <div className="schedule-cards">
@@ -1743,7 +1782,7 @@ function MailingCampaigns() {
 
                 <div className="card-details">
                   {selectedCard === 0 && (
-                    <div>{/* Details related to the first card */}</div>
+                    <div> Details related to the first card </div>
                   )}
                   {selectedCard === 1 && (
                     <div className="custom-card">
@@ -1798,7 +1837,7 @@ function MailingCampaigns() {
                     </div>
                   )}
                 </div>
-              </div>
+              </div> */}
             </TabPanel>
 
             <TabPanel value="4">
