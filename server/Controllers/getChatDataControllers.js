@@ -6,7 +6,7 @@ const getChatData = async (req,res) =>{
     let connection;
     try{
         connection = await dbConnection.getConnection();
-        const getChatQuery = 'SELECT  email_id, subject, sender_email, receiver_email, emailBody, campId, messageId, sentTime, receivedTime, emailType, threadId, leads FROM emailsdata WHERE userId = ? AND threadId = ? ORDER BY email_id ASC';
+        const getChatQuery = 'SELECT  email_id, subject, sender_email, receiver_email, emailBody, campId, messageId, sentTime, receivedTime, emailType, threadId, domainName, leads FROM emailsdata WHERE userId = ? AND threadId = ? ORDER BY email_id ASC';
         connection.query(getChatQuery, [userId,threadId], (err, results) => {
             if (err) {
                 console.error('Error fetching chat data:', err);

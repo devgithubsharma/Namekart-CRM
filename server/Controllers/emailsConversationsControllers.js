@@ -7,7 +7,37 @@ const moment = require('moment-timezone');
 const dbConnection = require('../dbConnection');
 const { format } = require('date-fns');
 
- 
+
+/**
+ * Extracts and returns the email address from a URL within the given text.
+ * @param {string} text - The text containing the URL with the email address.
+ * @returns {string|null} - The extracted email address, or null if not found.
+ */
+function extractMessageId(text) {
+    console.log("Input text:", text);
+
+    // Regular expression to find URLs starting with http or https
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    let urlMatch;
+
+    // Loop through all matches of URLs starting with http or https
+    while ((urlMatch = urlRegex.exec(text)) !== null) {
+        const url = urlMatch[0];
+
+        // Decode the URL to handle URL-encoded characters
+        const decodedUrl = decodeURIComponent(url);
+
+        // Regular expression to extract the email address from the URL
+        const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+        const emailMatches = decodedUrl.match(emailRegex);
+
+        if (emailMatches) {
+            return emailMatches[0];
+        }
+    }
+    return null;
+}
+
 function getOriginalEmailDetails(connection, messageId) {
     return new Promise((resolve, reject) => {
         const query = "SELECT * FROM emailsdata WHERE messageId = ?";
@@ -16,87 +46,65 @@ function getOriginalEmailDetails(connection, messageId) {
                 console.error('Error fetching original email details', error);
                 reject(error);
             } else if (results.length > 0) {
-                resolve(results[0]); 
+                resolve(results[0]);
             } else {
-                resolve(null); 
+                resolve(null);
             }
         });
     });
 }
 
-const getTokensForSender = async (senderEmail,connection) => {
+const getTokensForSender = async (senderEmail, connection) => {
     console.log('getTokensForSender');
     try {
-        return new Promise((resolve, reject) => { 
+        return new Promise((resolve, reject) => {
             connection.query('SELECT refreshToken FROM sendertable WHERE sender_email_id = ?', [senderEmail], (err, result) => {
                 if (err) {
                     console.error('Database error in getTokensForSender:', err);
-                    reject(err); 
+                    reject(err);
 
                 } else if (result.length > 0) {
                     const plainObject = JSON.parse(JSON.stringify(result[0]));
                     console.log('Resolve refresh token');
-                    resolve({ 
+                    resolve({
                         refreshToken: plainObject.refreshToken,
                     });
 
                 } else {
                     console.log(`No tokens found for ${senderEmail}`);
-                    resolve({  refreshToken: null }); 
+                    resolve({ refreshToken: null });
                 }
             });
         });
     } catch (error) {
-      console.error('Database error in getTokensForSender:', error);
-      throw error; 
-    } 
-  };
+        console.error('Database error in getTokensForSender:', error);
+        throw error;
+    }
+};
 
 
-  async function getGmailToken(refreshToken) {
-    try{
+async function getGmailToken(refreshToken) {
+    try {
         const oauth2Client = new google.auth.OAuth2(
-            process.env.Client_ID,  
-            process.env.Client_secret, 
-            process.env.REDIRECT_URI  
+            process.env.Client_ID2,
+            process.env.Client_secret2,
+            process.env.REDIRECT_URI
         );
-    
         oauth2Client.setCredentials({
-          refresh_token: refreshToken 
+            refresh_token: refreshToken
         });
-      
-        const {token} = await oauth2Client.getAccessToken(); 
-        console.log("accessToken", token);
-        return token; 
-    }catch(err){
-        console.log("Error in getGmailToken",err)
+        const { token } = await oauth2Client.getAccessToken();
+        return token;
+    } catch (err) {
+        console.log("Error in getGmailToken", err)
         return null
     }
-    
-  }
-
-  function messageIdExists(connection,messageId){
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM emailsdata WHERE messageId = ?';
-        connection.query(query, [messageId],(error, results) => {
-            if (error) {
-                console.error('Error in query of checking messageId', error);
-                reject(error);
-            } else {
-                console.log('MessageId Exists')
-                console.log(results)
-                if(results[0]){
-                    resolve(true)
-                }else
-                    resolve(false)
-                }               
-            })
-        })
 }
 
-function getSenderEmails(connection){
+
+function getSenderEmails(connection) {
     return new Promise((resolve, reject) => {
-        const query = 'Select sender_email_id from sendertable'; 
+        const query = 'Select sender_email_id from sendertable';
         connection.query(query, (error, results) => {
             if (error) {
                 console.error('Error in query of fetching sender_email_id', error);
@@ -109,13 +117,12 @@ function getSenderEmails(connection){
     })
 }
 
-function insertReplyAsNewRow(connection, originalEmailDetails, mailMessageId , replyText, tag, formattedDate,inReplyMessageId) {
+function insertReplyAsNewRow(connection, originalEmailDetails, mailMessageId, replyText, tag, formattedDate, inReplyMessageId) {
     console.log('insertReplyAsNewRow')
     return new Promise((resolve, reject) => {
-
-        const { sender_email, receiver_email, subject, campId, messageId, mailsCount, contactsReplied, firstMailCount, followUpMailCount, mailType, threadId, domainName, leads,userId } = originalEmailDetails;
+        const { sender_email, receiver_email, subject, campId, messageId, mailsCount, contactsReplied, firstMailCount, followUpMailCount, mailType, threadId, domainName, leads, userId } = originalEmailDetails;
         const query = "INSERT INTO emailsdata (sender_email, receiver_email, subject, emailBody, campId, messageId, mailsCount, contactsReplied, firstMailCount, followUpMailCount, mailSequence, emailType, threadId, tag,domainName,leads,receivedTime, inReplyTo, userId) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-        connection.query(query, [sender_email, receiver_email, subject, replyText, campId,  mailMessageId, mailsCount, contactsReplied, firstMailCount, followUpMailCount, mailType, 'received', threadId, tag, domainName, leads, formattedDate, inReplyMessageId, userId], (error, results) => {
+        connection.query(query, [sender_email, receiver_email, subject, replyText, campId, mailMessageId, mailsCount, contactsReplied, firstMailCount, followUpMailCount, mailType, 'received', threadId, tag, domainName, leads, formattedDate, inReplyMessageId, userId], (error, results) => {
             if (error) {
                 console.error('Error inserting new reply row', error);
                 reject(error);
@@ -128,10 +135,8 @@ function insertReplyAsNewRow(connection, originalEmailDetails, mailMessageId , r
 }
 
 
-function updateContactsRepliedInDatabase(messageId,connection) {
-    console.log(messageId)
+function updateContactsRepliedInDatabase(messageId, connection) {
     return new Promise((resolve, reject) => {
-
         const query = `UPDATE emailsdata SET contactsReplied = 1 WHERE messageId=?`;
         connection.query(query, [messageId], (error, results) => {
             if (error) {
@@ -146,44 +151,40 @@ function updateContactsRepliedInDatabase(messageId,connection) {
 }
 
 function getLastFetchTime(connection) {
-    return new Promise((resolve, reject) =>{
+    return new Promise((resolve, reject) => {
         const query = 'SELECT lastFetchTime FROM repliesfetchtime WHERE id = 1';
-        connection.query(query,(err,result)=>{
-            if(err){
-                console.log('Error in getLastFetchTime query',err)
-            }else{
-                console.log('Result of lastFetchTime ',result)
+        connection.query(query, (err, result) => {
+            if (err) {
+                console.log('Error in getLastFetchTime query', err)
+            } else {
+                console.log('Result of lastFetchTime ', result)
                 resolve(result);
             }
         })
     })
 }
 
-
-
 function updateLastFetchTime(connection) {
     return new Promise((resolve, reject) => {
         let now = new Date();
-
-        // const formattedDate = moment.utc(new Date()).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-        now  = format(now, 'yyyy-MM-dd HH:mm:ss');
+        now = format(now, 'yyyy-MM-dd HH:mm:ss');
         const query = 'UPDATE repliesfetchtime SET lastFetchTime = ? WHERE id = 1';
-        connection.query(query, [now], (err,result) =>{
-            if(err){
-                console.log('Error in updateLastFetchTime query',err)
+        connection.query(query, [now], (err, result) => {
+            if (err) {
+                console.log('Error in updateLastFetchTime query', err)
                 reject(err);
-            }else{
+            } else {
                 console.log('Time Updated successfully')
                 resolve();
-            } 
+            }
         });
     })
 }
 
 
-async function getRepliesEmailData(imap, senderEmail,lastFetchTime) {
+async function getRepliesEmailData(imap, senderEmail, lastFetchTime) {
     return new Promise((resolve, reject) => {
-        imap.search(["ALL", ["SINCE", lastFetchTime], ["TO", senderEmail]], function(err, results) {
+        imap.search(["ALL", ["SINCE", lastFetchTime], ["TO", senderEmail]], function (err, results) {
             if (err) {
                 reject(err);
                 return;
@@ -197,34 +198,33 @@ async function getRepliesEmailData(imap, senderEmail,lastFetchTime) {
 
             let tag;
             let foundMessageId = null;
-            let replyText = null;  
+            let replyText = null;
             const fetchPromises = [];
             let mailMessageId = null;
-            let emailDatas=[];
+            let emailDatas = [];
             let formattedDate;
-            // let formattedLastFetchedDate;
+            let extractedMessageId;
 
-            var f = imap.fetch(results,{ 
+            var f = imap.fetch(results, {
                 bodies: '',
                 struct: true
-              })
+            })
 
-            f.on("message", function(msg, seqno) {
-                console.log(123)
+            f.on("message", function (msg, seqno) {
                 const fetchPromise = new Promise((resolveMail, rejectMail) => {
                     var mailparser = new MailParser();
-                    
+
                     mailparser.on("error", error => {
                         console.error('MailParser error:', error);
                         rejectMail(error);
                     });
 
-                    msg.on("body", function(stream, info) {
+                    msg.on("body", function (stream, info) {
                         console.log(`Piping data to MailParser for seqno: ${seqno}, info: ${info.which}`);
                         stream.pipe(mailparser);
                     });
 
-                    mailparser.on("headers", async function(headers) {
+                    mailparser.on("headers", async function (headers) {
                         console.log('Mail header', headers);
                         let messageId = headers.get("in-reply-to");
                         formattedDate = headers.get("date")
@@ -233,26 +233,22 @@ async function getRepliesEmailData(imap, senderEmail,lastFetchTime) {
                             rejectMail('Email date is not newer than last fetch time');
                             return;
                         }
-                        console.log("lastFetchTime=>",lastFetchTime);
-
                         mailMessageId = headers.get('message-id')
                         mailMessageId = mailMessageId.replace(/^<|>$/g, '');
-                        console.log("mailMessageId",mailMessageId);
-                        console.log('messageId',messageId);
-                        
+
                         if (messageId) {
                             messageId = messageId.replace(/[<>]/g, '');
                             console.log('messageId', messageId);
-                            foundMessageId = messageId; 
+                            foundMessageId = messageId;
                             tag = "chatReply";
-                        }else{
-                            tag = "separateMail"; 
+                        } else {
+                            tag = "separateMail";
                         }
                     });
 
                     mailparser.on("data", (data) => {
                         if (data.type === 'text') {
-                            console.log(`Full Body: ${data.text}`);
+                            extractedMessageId = extractMessageId(data.text);
                             const lines = data.text.split('\n');
                             const originalMessageIndex = lines.findIndex(line => line.trim().startsWith('On ') && line.includes('wrote:'));
                             if (originalMessageIndex > 0) {
@@ -264,91 +260,76 @@ async function getRepliesEmailData(imap, senderEmail,lastFetchTime) {
                         }
                     });
 
-
-
                     mailparser.on("end", () => {
-                        console.log(`Completed parsing for seqno: ${seqno}`);
                         let tag = foundMessageId ? "chatReply" : "separateMail";
-                        console.log("formattedDate",formattedDate)
-                        console.log("lastFetchTime",lastFetchTime)
 
-                    if(formattedDate>lastFetchTime){
-                        console.log("formattedDate>lastFetchTime")
-                        emailDatas.push({ messageId: foundMessageId, replyText: replyText, tag: tag, mailMessageId:mailMessageId, formattedDate:formattedDate });
-                        console.log("emailDatas",emailDatas)
-                        resolveMail({ messageId: foundMessageId, replyText: replyText, tag: tag, mailMessageId:mailMessageId, formattedDate:formattedDate });
-                    }else{
-                        rejectMail({ messageId: foundMessageId, replyText: replyText, tag: tag, mailMessageId:mailMessageId, formattedDate:formattedDate })
+                        if (formattedDate > lastFetchTime) {
+                            emailDatas.push({ messageId: extractedMessageId, replyText: replyText, tag: tag, mailMessageId: mailMessageId, formattedDate: formattedDate });
+                            resolveMail({ messageId: extractedMessageId, replyText: replyText, tag: tag, mailMessageId: mailMessageId, formattedDate: formattedDate });
+                        } else {
+                            rejectMail({ messageId: extractedMessageId, replyText: replyText, tag: tag, mailMessageId: mailMessageId, formattedDate: formattedDate })
                         }
                     });
                 });
-                
-                console.log("abc134")
+
                 fetchPromises.push(fetchPromise);
-                
+
             });
-            
-            f.once("error", function(err) {
+
+            f.once("error", function (err) {
                 console.log("Fetch error------------------: ", err);
                 reject(err);
             });
 
-
-            f.once("end", function() {
-                console.log(`Fetching complete.`);
-                console.log("fetchPromises",fetchPromises)
+            f.once("end", function () {
                 fetchPromises.forEach((p, index) => console.log(`Promise ${index}:`, p));
-                    Promise.allSettled(fetchPromises).then((results) => {
-                        console.log("results inside allSettled",results)
-                        const successfulResults = results.filter(result => result._settledValueField.tag === "chatReply")
+                Promise.allSettled(fetchPromises).then((results) => {
+                    const successfulResults = results.filter(result => result._settledValueField.tag === "chatReply")
                         .map(result => result._settledValueField);
-                        console.log(`Successfully processed ${successfulResults.length} out of ${results.length} fetch operations.`);
-                        resolve(successfulResults);
-                    }).catch(error => {
-                        console.error('Error processing fetch promises:', error);
-                        reject(error);
-                    });
-                    // const lastResult = results  
-                    // console.log(`Done processing all unseen messages from ${senderEmail}.`);
-                    // resolve(lastResult);
-                })
-            });
-
+                    console.log(`Successfully processed ${successfulResults.length} out of ${results.length} fetch operations.`);
+                    resolve(successfulResults);
+                }).catch(error => {
+                    console.error('Error processing fetch promises:', error);
+                    reject(error);
+                });
+            })
         });
+
+    });
 }
 
+///////////////////////////////controller functions started////////////////////////////
 
+//for checking api working correct or not
+const processEmailConversationsapi = async (req, res) => {
+    let connection;
+    connection = await dbConnection.getConnection();
+    const data = await processEmailConversations(connection);
+    res.json({ data });
+}
+
+//for fetching, storing and updating status of reply
 async function processEmailConversations(connection) {
-    try{
-        // const connection = await dbConnection.getConnection();
-        console.log("Starting of processEmailConversations")
+    try {
         let datas = await getSenderEmails(connection);
         datas = datas.map(data => data.sender_email_id);
-        console.log('datas',datas)
+        const allMessages = [];
         let lastFetchTime = await getLastFetchTime(connection);
-        console.log("lastFetchTime",lastFetchTime)
         lastFetchTime = lastFetchTime.map(data => data.lastFetchTime);
         lastFetchTime = lastFetchTime[0]
         lastFetchTime = format(lastFetchTime, 'yyyy-MM-dd HH:mm:ss');
-        console.log('lastFetchTime', lastFetchTime);
 
-        // lastFetchTime = moment.utc(lastFetchTime).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-        // console.log('lastFetchTime (Local)', lastFetchTime);
-    
         for (let sender of datas) {
-            console.log("sender",sender)
-            const tokens = await getTokensForSender(sender,connection);
+            const tokens = await getTokensForSender(sender, connection);
             let accessToken = await getGmailToken(tokens.refreshToken);
-            if(!accessToken){
+            if (!accessToken) {
                 continue;
             }
-            console.log('accessToken',accessToken)
-            let base64Encoded =  Buffer.from([`user=${sender}`, `auth=Bearer ${accessToken}`, '', ''].join('\x01'), 'utf-8').toString('base64');
-            console.log('base64Encoded',base64Encoded)
+            let base64Encoded = Buffer.from([`user=${sender}`, `auth=Bearer ${accessToken}`, '', ''].join('\x01'), 'utf-8').toString('base64');
 
             var imap = new Imap({
                 user: sender,
-                xoauth2:base64Encoded,
+                xoauth2: base64Encoded,
                 host: 'imap.gmail.com',
                 port: 993,
                 tls: true,
@@ -361,40 +342,27 @@ async function processEmailConversations(connection) {
                 }
             });
 
-            console.log('Connection established')
             Promise.promisifyAll(imap);
-            // imap.once("error", function(err) {
-            //     console.log("Connection error: " + err.stack);
-            // });
-    
-            // imap.connect();
-    
             await new Promise((resolve, reject) => {
-                console.log('Open Inbox')
-                imap.once("ready", async function() {
-                    console.log('Error after imap.once')
-                    imap.openBox("INBOX", false, async function(err, mailBox) {
+                imap.once("ready", async function () {
+                    imap.openBox("INBOX", false, async function (err, mailBox) {
                         if (err) {
-                            console.error('Error inside openbox',err);
+                            console.error('Error inside openbox', err);
                             reject(err);
                             return;
                         }
 
                         try {
-                            console.log('Before receivedEmails');
-                            const messages = await getRepliesEmailData(imap, sender,lastFetchTime);
-                            console.log('messages',messages);
-                           
-                            for (const message of messages){
-                                const { messageId, replyText, tag, mailMessageId,formattedDate } = message; 
-                                console.log('Processing message:', messageId, replyText, tag, mailMessageId);
-                                console.log('Before checking messageId and replyText:', messageId, replyText);
-                                await updateContactsRepliedInDatabase(messageId,connection)
+                            const messages = await getRepliesEmailData(imap, sender, lastFetchTime);
+                            allMessages.push(...messages);
+
+                            for (const message of messages) {
+                                const { messageId, replyText, tag, mailMessageId, formattedDate } = message;
+                                await updateContactsRepliedInDatabase(messageId, connection)
                                 try {
                                     const originalEmail = await getOriginalEmailDetails(connection, messageId);
                                     if (originalEmail) {
                                         await insertReplyAsNewRow(connection, originalEmail, mailMessageId, replyText, tag, formattedDate, messageId);
-                                        console.log(`Database updated for messageId ${messageId} with new reply email.`);
                                     } else {
                                         console.log('No original email details found for:', messageId);
                                     }
@@ -402,9 +370,7 @@ async function processEmailConversations(connection) {
                                     console.error('Error during database operation:', error);
                                 }
                                 console.log('After inserting new row');
-
-                            } 
-
+                            }
                         } catch (error) {
                             console.error(`Error updating database: ${error}`);
                         }
@@ -414,30 +380,31 @@ async function processEmailConversations(connection) {
                     });
                 });
 
-                imap.once("error", function(err) {
+                imap.once("error", function (err) {
                     console.log("IMAP connection error-------- " + err.stack);
                 });
 
-                imap.once('end', function() {
+                imap.once('end', function () {
                     console.log('Connection ended----------');
                 });
 
                 imap.connect();
 
             });
-            
+
         }
         console.log("Before updateLastFetchTime")
-        await updateLastFetchTime(connection)
-        console.log("After updateLastFetchTime")
-    }catch(err){
+        await updateLastFetchTime(connection);
+        return allMessages;
+    } catch (err) {
         console.error('Error during the processEmailConversations:', err);
-        throw err; 
+        throw err;
     }
 }
 
 module.exports = {
     processEmailConversations,
+    processEmailConversationsapi,
 }
 
 

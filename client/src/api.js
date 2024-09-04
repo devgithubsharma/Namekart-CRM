@@ -365,20 +365,13 @@ export const fetchInboxItems = async (params) => {
     }
 };
 
-export const sendReply = async (sender_email,receiver_email,subject,replyText,campId,threadId,domainName,leads,messageId,userId) => {
+export const sendReply = async (message,email_id,userId) => {
     try {
         const response = await api.post(`/sendReply`, {
-                sender_email: sender_email,
-                receiver_email: receiver_email,
-                subject:subject,
-                emailBody: replyText,
-                campId: campId,
-                threadId:  threadId,
-                domainName: domainName,
-                lead: leads,
-                messageId: messageId,
-                userId:userId
-            });
+            message: message,
+            email_id: email_id,
+            userId: userId
+        });
         return response;
     } catch (error) {
         console.log("Error in sendReply",error)
@@ -411,7 +404,6 @@ export const fetchIndexData = async (params,type) => {
         throw error.response.data;
     }
 };
-
 
 export const logins = async (login,password) => {
     try {
@@ -450,6 +442,46 @@ export const fetchContactForTag = async (params) => {
     } catch (error) {
         console.log("Error in fetchContactForTag",error)
         throw error.response.data;
+    }
+};
+
+export const fetchManualEmails = async (params) => {
+    try {
+        const response = await api.get(`/manualemails`, {params}); 
+        return {data: response?.data?.data || [], totalCount:response?.data?.totalCount};
+    } catch (error) {
+        console.log("Error in fetchIndexData",error)
+        throw error.response.data;
+    }
+};
+
+export const fetchCampaignEmailData = async (campId, params, userId) => {
+    try {
+        const response = await api.get(`/campaignemaildata/${campId}/${userId}`,{params}); 
+        return response.data;
+    } catch (error) {
+        console.log("Error in fetchIndexData",error)
+        throw error.response.data;
+    }
+};
+
+export const addToBookmark = async (threadId) => {
+    try {
+        const response = await api.put(`/bookmark/add`, { threadId });
+        return response;
+    } catch (error) {
+        console.error("Error in adding Bookmark:", error);
+        throw error.response?.data || error.message;
+    }
+};
+
+export const removeFromBookmark = async (threadId) => {
+    try {
+        const response = await api.put(`/bookmark/remove`, { threadId });
+        return response;
+    } catch (error) {
+        console.error("Error in removing Bookmark:", error);
+        throw error.response?.data || error.message;
     }
 };
 

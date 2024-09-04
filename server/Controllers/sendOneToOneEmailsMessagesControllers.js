@@ -43,8 +43,8 @@ function getRefreshToken(senderEmail) {
 
 function saveEmailData(emailData, connection) {
     return new Promise((resolve, reject) => {
-        const sql = `INSERT INTO emailsdata (messageId, sender_email, receiver_email, subject, emailBody, sentTime, campId, threadId, domainName,mailsCount,emailType,leads,userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        const values = [emailData.messageId, emailData.sender_email, emailData.receiver_email, emailData.subject, emailData.emailBody, emailData.sentTime, emailData.campId, emailData.threadId, emailData.domainName,1,'sent',emailData.lead,emailData.userId];
+        const sql = `INSERT INTO emailsdata (messageId, sender_email, receiver_email, subject, emailBody, sentTime, campId, threadId, domainName,mailsCount,emailType,leads,userId,isRepliedMail) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const values = [emailData.messageId, emailData.sender_email, emailData.receiver_email, emailData.subject, emailData.emailBody, emailData.sentTime, emailData.campId, emailData.threadId, emailData.domainName,1,'sent',emailData.lead,emailData.userId,emailData.isRepliedMail];
         connection.query(sql, values, (error, results) => {
             if (error) {
                 reject(error);
@@ -127,24 +127,58 @@ const getTokensForSender = async (senderEmail,connection) => {
   };
 
 
+const getMessageDetails = async (email_id) => {
+    let connection;
+    try {
+        connection = await dbConnection.getConnection();
+    } catch (error) {
+        console.error("Error getting database connection:", error);
+        throw error;
+    }
+    return new Promise((resolve, reject) => {
+        const latestEmailQuery = "SELECT * FROM emailsdata WHERE email_id = ?";
+        connection.query(latestEmailQuery, [email_id], (error, results) => {
+            if (error) {
+                console.error("Database error in getDetails:", error);
+                reject(error);
+            } else {
+                const latestEmail = results.length > 0 ? results[0] : null;
+                console.log("Latest email fetched successfully");
+                resolve(latestEmail);
+            }
+        });
+    });
+};
+
+
 const sendMessage = async (req, res) => {
-    const sender_email = req.body.sender_email
-    const receiver_email = req.body.receiver_email
-    const subject = req.body.subject
-    const emailBody = req.body.emailBody
-    const campId = req.body.campId
-    const threadId = req.body.threadId
-    const domainName = req.body.domainName
-    const lead = req.body.lead
+    // const sender_email = req.body.sender_email
+    // const receiver_email = req.body.receiver_email
+    // const subject = req.body.subject
+    // const emailBody = req.body.emailBody
+    // const campId = req.body.campId
+    // const threadId = req.body.threadId
+    // const domainName = req.body.domainName
+    // const lead = req.body.lead
+    // const replyMessageId = req.body.messageId;
+    // const userId = req.body.userId
+
+    const {message,email_id, userId} = req.body;
+    const messageDetails = await getMessageDetails(email_id);
+
+    const sender_email = messageDetails.sender_email
+    const receiver_email = messageDetails.receiver_email
+    const subject = messageDetails.subject
+    const emailBody = message
+    const campId = messageDetails.campId
+    const threadId = messageDetails.threadId
+    const domainName = messageDetails.domainName
+    const lead = messageDetails.lead
+    const replyMessageId = messageDetails.messageId;
+
     let messageId = `<${uuid.v4()}@${domainName}>`;
     const sentTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
-    const replyMessageId = req.body.messageId;
-    const userId = req.body.userId
-
-    console.log("replyMessageId",replyMessageId)
     let connection;
-    
-    
 
     try {
         startTime = performance.now();
@@ -217,7 +251,8 @@ const sendMessage = async (req, res) => {
                     threadId,
                     domainName,
                     lead,
-                    userId
+                    userId,
+                    isRepliedMail: true,
                 }, connection);
                 endTime = performance.now();
                 console.log(`Execution time for saveEmailData: ${endTime - startTime} milliseconds`);
