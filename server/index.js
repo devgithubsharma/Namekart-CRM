@@ -70,6 +70,10 @@ const {uploadContactsFromDashboard} = require('./Controllers/directUploadAndRunC
 const {fetchContactsForTags} = require('./Controllers/fetchContactsForTagsControllers.js')
 const {getSenderEmailsForCampId} = require('./Controllers/getSenderEmailsForCampIdControllers.js')
 const {sendBulkEmails} = require('./Controllers/testingGmailApiControllers.js')
+const {processEmailConversationsapi} = require('./Controllers/emailsConversationsControllers')
+const {getManualEmails} = require('./Controllers/getManualEmailsControllers.js')
+const {getCampaignEmailData} = require('./Controllers/getManualEmailsControllers.js')
+const {addToBookmark, removeFromBookmark, getBookmarkedMails} = require('./Controllers/bookmarkControllers.js')
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
@@ -100,6 +104,7 @@ app.delete('/api/deleteTag/:tagToDelete',deleteTags);
 app.get('/mailTrack', trackingEmails);
 app.put('/api/updateEmailToken',updateEmails);
 app.get('/api/getSenderEmailsDetails/:userId',getSendersEmailsDetail)
+app.get('/api/campaignemaildata/:campId/:userId',getCampaignEmailData)
 app.post('/api/saveSequenceDetails',saveSequenceDetails)
 app.get('/api/seqName/:campId',getSequenceNames)
 app.get('/api/seqDetails',getSequenceDetails)
@@ -127,8 +132,12 @@ app.post('/api/uploadContactsFromDashboard',uploadContactsFromDashboard)
 app.get('/api/fetchContactsForTags/:tags_id',fetchContactsForTags)
 app.get('/api/getSenderEmailsForCampId/:campId',getSenderEmailsForCampId)
 app.post('/api/sendBulkEmails',sendBulkEmails)
-app.post('/api/testingRelies',processEmailConversations)
+app.post('/api/testingRelies',processEmailConversationsapi)
 // app.get('/message-streams/broadcast/suppressions/dump',liveDetectSubscriptionChange)
+app.get('/api/manualemails',getManualEmails);
+app.put('/api/bookmark/add',addToBookmark);
+app.put('/api/bookmark/remove',removeFromBookmark);
+app.get('/api/bookmark/get',getBookmarkedMails);
 
 
 app.post('/postmark/webhook', (req,res) =>{
@@ -199,34 +208,18 @@ app.get('/api/getEmailInfo',async (req,res)=>{
     res.send({"Error":err})
   }
 })
- 
 
-
-
-// cron.schedule('*/1 * * * *', async () => {
-//   console.log('Running updateRepliesStatus every 15 seconds');
-//   const connection = await dbConnection.getConnection();
-//   try {
-//       await processUpdateRepliesStatus(connection);
-//       console.log("Process completed successfully.");
-//   } catch (error) {
-//       console.error("Error during the cron job process:", error);
-//   } finally {
-//       connection.release();
-//   }
-// });
-
-
+// Schedule to run every 10 minutes
 cron.schedule('*/10 * * * *', async () => {
-  console.log('Running updateRepliesStatus every 15 seconds');
+  console.log('Running updateRepliesStatus and save replies to db every 10 minutes');
   const connection = await dbConnection.getConnection();
   try {
       await processEmailConversations(connection);
-      console.log("Process completed successfully.");
+    console.log("Process completed successfully.");
   } catch (error) {
-      console.error("Error during the cron job process:", error);
+    console.error("Error during the cron job process:", error);
   } finally {
-      connection.release();
+    connection.release();
   }
 });
 
