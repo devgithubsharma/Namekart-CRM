@@ -64,7 +64,7 @@ const ManualMail = () => {
     const fetchSendersEmails = async () => {
       try {
         const response = await fetchSenderEmailsDetails(userId);
-        const result = await response.data.result.map(item => item.user_id);
+        const result = await response.data.result.map(item => item.sender_email_id);
         setSenderEmails(result);
         setEmailAccount(result[0]);
       } catch (err) {

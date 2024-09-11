@@ -41,6 +41,13 @@
     font-size: 1.5em;
     color: #333;
   }
+
+  .mailing-controls {
+    display: flex;
+    justify-content: flex-start; /* Aligns buttons to the left */
+    gap: 7px; /* Maintains consistent spacing between buttons */
+    margin-right: 40px;
+  }
     
   .mailing-controls button { 
     background-color: rgb(58, 49, 49); 
@@ -370,6 +377,7 @@
   .daycard-heading{
     font-size: 25px;
   }
+
 
   .add-interval-btn{
     background-color: rgb(22, 21, 21);

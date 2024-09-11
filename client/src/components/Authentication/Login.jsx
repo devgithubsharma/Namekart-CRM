@@ -19,8 +19,12 @@ function Login() {
       if (response.status === 200) {
         console.log('Login successful');
         if (response.data.token) {
+          console.log("response.data.token")
           await saveToken(response.data.token);
+        }else{
+          console.error('Token not found in response');
         }
+        console.log("1234")
         loginAuth(login);
         navigate('/home/manualCampaigns');
       } else {

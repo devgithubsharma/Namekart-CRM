@@ -14,6 +14,7 @@ async function initDB() {
 export async function saveToken(token) {
     const db = await initDB();
     const tx = db.transaction('auth', 'readwrite');
+    console.log("token", tx)
     await tx.objectStore('auth').put({ key: 'token', value: token });
     await tx.done;
 }

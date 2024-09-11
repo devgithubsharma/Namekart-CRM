@@ -2,6 +2,7 @@ const dbConnection = require('../dbConnection');
 
 const updateSequnceDetails = async (req, res) => {
     console.log("updateSequnceDetails");
+    console.log("req.body", req.body)
     const { sequenceId, sequenceName, steps } = req.body;
     const connection = await dbConnection.getConnection();
 

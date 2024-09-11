@@ -7,6 +7,7 @@ const API_BASE_URL_NAMEKART = "https://crmapi.namekart.com/api";
 const api = axios.create({
     baseURL: API_BASE_URL_NAMEKART,
     // baseURL: API_BASE_URL_LOCALHOST_SANJEEV,
+    // baseURL: API_BASE_URL_LOCALHOST,
     responseType: "json",
     headers: { 
      accept: "application/json",
@@ -143,9 +144,9 @@ export const fetchSenderEmails = async (params) => {
     }
 };
 
-export const fetchSequenceDetails = async () => {
+export const fetchSequenceDetails = async (userId) => {
     try {
-        const response = await api.get(`/seqDetails`);
+        const response = await api.get(`/seqDetails/${userId}`);
         return response;
     } catch (error) {
         console.log("Error in fetchSequenceDetails",error)

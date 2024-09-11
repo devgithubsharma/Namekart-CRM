@@ -34,6 +34,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import DriveFileRenameOutlineTwoToneIcon from "@mui/icons-material/DriveFileRenameOutlineTwoTone";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import ClearIcon from "@mui/icons-material/Clear";
+import Modal from "@mui/material/Modal";
+import Paper from "@mui/material/Paper";
 import {
   Dialog,
   DialogTitle,
@@ -206,6 +208,9 @@ function MailingCampaigns() {
   const [receiverName, setReceiverName] = useState([]);
   const [domainLink, setDomainLink] = useState([]);
   const [leads, setLeads] = useState([]);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewContent, setPreviewContent] = useState([]);
+  const [editablePreviewContent, setEditablePreviewContent] = useState([]);
   // const isSaveEnabled = sequences.some(seq => seq.steps.some(step => !step.isSaved));
   // const isUpdateEnabled = sequences.some(seq => seq.steps.some(step => step.isSaved && step.isUpdated));
 
@@ -247,6 +252,27 @@ function MailingCampaigns() {
       </div>
     );
   }
+
+  const modules = {
+    toolbar: [
+      [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
+      [{size: []}],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{'list': 'ordered'}, {'list': 'bullet'}, 
+       {'indent': '-1'}, {'indent': '+1'}],
+      ['link', 'image', 'video'],
+      [{ 'color': [] }, { 'background': [] }], // Add color and background options
+      ['clean']                                         
+    ],
+  };
+
+  const formats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video',
+    'color', 'background' // Add color and background formats
+  ];
 
   useEffect(() => {
     console.log("Sequence", sequences);
@@ -367,6 +393,43 @@ function MailingCampaigns() {
     );
   }
 
+//   const handlePreview = () => {
+//   const activeSequence = sequences.find(seq => seq.id === activeSequenceTab);
+//   if (activeSequence) {
+//     const content = activeSequence.steps.map(step => `
+//     <p><strong>Subject:</strong> ${step.subject}</p>
+//     <p><strong>Pretext:</strong> ${step.pretext}</p>
+//     ${step.delay ? `<p><strong>Follow-up Delay:</strong> ${step.delay} days</p>` : ''}
+//     <div><strong>Body:</strong></div>
+//     <div>${step.body}</div>
+
+//     `).join('');
+//     setPreviewContent(content);
+//     setIsPreviewOpen(true);
+//   }
+// };
+
+const handlePreview = () => {
+  const activeSequence = sequences.find(seq => seq.id === activeSequenceTab);
+  if (activeSequence) {
+    const content = activeSequence.steps.map(step => ({
+      id: step.id,
+      subject: step.subject,
+      pretext: step.pretext,
+      delay: step.delay,
+      body: step.body
+    }));
+    setEditablePreviewContent(content);
+    setIsPreviewOpen(true);
+  }
+};
+
+const handleQuillChange = (value, index) => {
+  const updatedContent = [...editablePreviewContent];
+  updatedContent[index].body = value;
+  setEditablePreviewContent(updatedContent);
+};
+
   const handleSaveSequence = (id, newName, newIsEnabled) => {
     const updatedSequences = sequences.map((sequence) =>
       sequence.id === id
@@ -385,6 +448,7 @@ function MailingCampaigns() {
   const saveSequence = async () => {
     const sequenceData = {
       sequenceName: activeSequence.name,
+      userId: userId,
       // campaignId: campId,
       isNew: activeSequence.isNew,
       steps: activeSequence.steps,
@@ -405,7 +469,38 @@ function MailingCampaigns() {
     setSnackbarOpen(true);
   };
 
-  const handleUpdateSequence = async () => {
+  // const handleUpdateSequence = async () => {
+  //   const sequenceToUpdate = sequences.find(
+  //     (seq) => seq.id === activeSequenceTab
+  //   );
+  //   if (!sequenceToUpdate) {
+  //     console.error("No active sequence found for updating.");
+  //     return;
+  //   }
+
+  //   try {
+  //     console.log("sequenceToUpdate.steps", sequenceToUpdate.steps);
+  //     // const response = await axios.put('https://crmapi.namekart.com/api/updateSequenceDetails', {
+  //     //   sequenceId: sequenceToUpdate.id,
+  //     //   sequenceName: sequenceToUpdate.name,
+  //     //   steps: sequenceToUpdate.steps,
+  //     // });
+  //     const response = await updateSequences(
+  //       sequenceToUpdate.id,
+  //       sequenceToUpdate.name,
+  //       sequenceToUpdate.steps
+  //     );
+  //     console.log("Sequence updated successfully:", response.data);
+  //     setSnackbarMessage("Sequence updated successfully!");
+  //     triggerSnapshotEffect();
+  //   } catch (error) {
+  //     console.error("Error updating sequence:", error);
+  //     setSnackbarMessage("Failed to update sequence.");
+  //   }
+  //   setSnackbarOpen(true);
+  // };
+
+  const handleUpdateSequence = async (isFromPreview = false) => {
     const sequenceToUpdate = sequences.find(
       (seq) => seq.id === activeSequenceTab
     );
@@ -413,22 +508,40 @@ function MailingCampaigns() {
       console.error("No active sequence found for updating.");
       return;
     }
-
+  
+    let updatedSteps;
+    if (isFromPreview) {
+      // Use the editablePreviewContent when updating from the preview modal
+      updatedSteps = sequenceToUpdate.steps.map((step, index) => ({
+        ...step,
+        body: editablePreviewContent[index].body
+      }));
+    } else {
+      // Use the current sequence steps when updating from the main view
+      updatedSteps = sequenceToUpdate.steps;
+    }
+  
     try {
-      console.log("sequenceToUpdate.steps", sequenceToUpdate.steps);
-      // const response = await axios.put('https://crmapi.namekart.com/api/updateSequenceDetails', {
-      //   sequenceId: sequenceToUpdate.id,
-      //   sequenceName: sequenceToUpdate.name,
-      //   steps: sequenceToUpdate.steps,
-      // });
       const response = await updateSequences(
         sequenceToUpdate.id,
         sequenceToUpdate.name,
-        sequenceToUpdate.steps
+        updatedSteps
       );
       console.log("Sequence updated successfully:", response.data);
       setSnackbarMessage("Sequence updated successfully!");
       triggerSnapshotEffect();
+  
+      // Update the sequences state with the new content
+      const updatedSequences = sequences.map(seq => 
+        seq.id === activeSequenceTab 
+          ? { ...seq, steps: updatedSteps } 
+          : seq
+      );
+      setSequences(updatedSequences);
+  
+      if (isFromPreview) {
+        setIsPreviewOpen(false);
+      }
     } catch (error) {
       console.error("Error updating sequence:", error);
       setSnackbarMessage("Failed to update sequence.");
@@ -776,7 +889,7 @@ function MailingCampaigns() {
     const fetchSequencesDetails = async () => {
       try {
         // const response = await axios.get(`https://crmapi.namekart.com/api/seqDetails`);
-        const response = await fetchSequenceDetails();
+        const response = await fetchSequenceDetails(userId);
         console.log(response);
         const fetchedData = response.data.result;
         const sequencesMap = fetchedData.reduce((acc, currentItem) => {
@@ -846,6 +959,10 @@ function MailingCampaigns() {
     };
     fetchSequencesDetails();
   }, [campId]);
+
+  useEffect(() => {
+    console.log("sequences", sequences);
+  }, [sequences]);
 
   const handleDeleteStep = async (sequenceId, stepId) => {
     console.log("sequenceId", sequenceId);
@@ -1388,6 +1505,12 @@ function MailingCampaigns() {
               className="delete"
             >
               Delete campaign
+            </button>
+            <button
+              onClick={handlePreview}  // You'll need to implement this function
+              className="preview"
+            >
+              Preview
             </button>
             <button
               onClick={startCampaign}
@@ -2085,6 +2208,8 @@ function MailingCampaigns() {
                                               content
                                             )
                                           }
+                                          // modules={modules} 
+                                          // formats={formats}
                                         />
                                       </div>
                                       <CharacterCount
@@ -2173,7 +2298,7 @@ function MailingCampaigns() {
                   </button>
 
                   <button
-                    onClick={handleUpdateSequence}
+                    onClick={() => handleUpdateSequence(false)}
                     style={{ cursor: "pointer" }}
                     disabled={
                       sequences.find((seq) => seq.id === activeSequenceTab)
@@ -2197,6 +2322,84 @@ function MailingCampaigns() {
         onClose={handleSnackbarClose}
         message={snackbarMessage}
       />
+
+  <Modal
+  open={isPreviewOpen}
+  onClose={() => setIsPreviewOpen(false)}
+  aria-labelledby="preview-modal"
+  aria-describedby="preview-of-sequence"
+>
+  <Paper 
+    sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '40%',
+      maxHeight: '80%',
+      overflowY: 'auto',
+      p: 4,
+    }}
+  >
+    <h3 id="preview-modal" style={{ textAlign: 'center', width: '100%' }}>Sequence Preview</h3>
+    {editablePreviewContent.map((step, index) => (
+      <div key={index}>
+        <p><strong>Subject:</strong> {step.subject}</p>
+        {/* <p><strong>Pretext:</strong> {step.pretext}</p> */}
+        {/* {step.delay && <p><strong>Follow-up Delay:</strong> {step.delay} days</p>} */}
+        <div style={{ marginBottom: '10px' }}><strong>Body:</strong></div>
+    <div style={{ marginTop: '10px' }}>
+
+    <ReactQuill 
+        value={step.body} 
+        onChange={(content) => handleQuillChange(content, index)}
+        readOnly={false}
+        modules={{
+          toolbar: [
+            [{ 'header': [1, 2,3, false] }],
+            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+            [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+            ['link', 'image'],
+            ['clean']
+          ]
+        }}
+        formats={[
+          'header',
+          'bold', 'italic', 'underline', 'strike', 'blockquote',
+          'list', 'bullet', 'indent',
+          'link', 'image'
+        ]}
+      />
+        </div>
+      </div>
+    ))}
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'flex-end', 
+      marginTop: '20px',
+      gap: '10px'
+    }}>
+      <Button 
+        onClick={() => setIsPreviewOpen(false)}
+        variant="outlined"
+      >
+        Cancel
+      </Button>
+      <Button 
+        onClick={() => {
+          handleUpdateSequence(true);
+          setIsPreviewOpen(false);
+        }}
+        variant="contained"
+        color="primary"
+      >
+        Update Template
+      </Button>
+    </div>
+    {/* <Button onClick={() => setIsPreviewOpen(false)}>Close</Button> */}
+  </Paper>
+</Modal>
+
     </div>
   );
 }

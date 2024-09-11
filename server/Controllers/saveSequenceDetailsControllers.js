@@ -7,16 +7,17 @@ const saveSequenceDetails = async (req,res) =>{
     //     const $ = cheerio.load(htmlBody);
     //     return $.text();
     // };
-
-    const { sequenceName, isNew, steps } = req.body;
+    console.log("req.body", req.body)
+    const { sequenceName,userId, isNew, steps } = req.body;
+    
     let connection;
     try{
         connection = await dbConnection.getConnection();
         await connection.beginTransaction(err => {
             if (err) { throw err; }
     
-            const insertSequenceQuery = 'INSERT INTO sequences ( sequence_name, isNew) VALUES (?, ?)';
-             connection.query(insertSequenceQuery, [ sequenceName, isNew], (error, results) => {
+            const insertSequenceQuery = 'INSERT INTO sequences ( sequence_name, isNew, userId) VALUES (?, ?, ?)';
+             connection.query(insertSequenceQuery, [ sequenceName, isNew, userId], (error, results) => {
                 if (error) {
                     return connection.rollback(() => {   
                         throw error;
